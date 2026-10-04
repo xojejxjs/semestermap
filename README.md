@@ -17,7 +17,7 @@
 
 ## Features
 
-- **Map of BU dorms and buildings** — 19 dorm locations (including Warren's towers, Bay State Road brownstones and the Fenway Campus) and 32 academic buildings, dining halls, recreation and student-service locations, color-coded by type.
+- **Map of BU dorms and buildings** — 20 dorm locations (including Warren's towers, Bay State Road brownstones, South Campus and the Fenway Campus) and 74 academic buildings, dining halls, recreation and student-service locations, color-coded by type.
 - **Dorm details** — room types, amenities, floor plans, virtual tours and a link to the official BU Housing page.
 - **Dorm search** — search by official name, nickname or address (e.g. `Warren`, `StuVi`, `Myles`, `188 Bay State Road`). The selected building is outlined on the map.
 - **Directions** — how long is the walk between any two places? Pick a dorm, building, one of your classes or a street address (tap **Directions** on a class to get there). Recent and popular destinations are one tap away. **📍 Use my location** starts from where you are (asked only when you tap it; a blue dot follows you while Directions is open), and **Open in Google Maps / Apple Maps** hands the walk to your phone's navigation app.

@@ -134,7 +134,7 @@
       "amenities": ["Laundry Facility", "Music Room", "Study Lounge", "Bike Rack"],
       "units": [],
       "addresses": [],
-      "aliases": []
+      "aliases": ["West Campus"]
     },
     {
       "id": "sleeper",
@@ -151,7 +151,7 @@
       "amenities": ["Laundry Facility", "Study Lounge", "Bike Rack"],
       "units": [],
       "addresses": [],
-      "aliases": []
+      "aliases": ["West Campus"]
     },
     {
       "id": "rich",
@@ -168,7 +168,7 @@
       "amenities": ["Laundry Facility", "Music Room", "Study Lounge", "Game Room", "Bike Rack"],
       "units": [],
       "addresses": [],
-      "aliases": []
+      "aliases": ["West Campus"]
     },
     {
       "id": "stuvi1",
@@ -322,6 +322,23 @@
       "units": [],
       "addresses": [],
       "aliases": []
+    },
+    {
+      "id": "south_campus",
+      "name": "South Campus",
+      "address": "Buswell St & Park Dr",
+      "latitude": 42.3470221,
+      "longitude": -71.1063873,
+      "description": "The neighborhood with the most apartment-style residences on campus: 39 brownstones and apartment buildings on Beacon Street, Buswell Street, Park Drive and nearby streets, south of the Mass Pike. Apartments and studios come with their own kitchen and bathroom; the laundry is at 44 Buswell Street.",
+      "room_types": ["Studio Single", "Studio Double", "Studio Triple", "Apartment Single", "Apartment Double", "Apartment Triple", "Traditional Single", "Traditional Double"],
+      "image_url": "",
+      "floor_plan_url": "https://www.bu.edu/housing/residence/south-campus-apartments/",
+      "tour_360_url": "https://www.bu.edu/housing/residence/south-campus-apartments/",
+      "official_url": "https://www.bu.edu/housing/residence/south-campus-apartments/",
+      "amenities": ["Fully Furnished", "All Utilities Included", "Laundry Facility at 44 Buswell", "24-Hour Emergency Maintenance", "Lock-Out Assistance"],
+      "units": [],
+      "addresses": [],
+      "aliases": ["South Campus Apartments", "Buswell Street", "Park Drive"]
     }
   ],
   "buildings": [
@@ -341,7 +358,8 @@
       "code": "CAS",
       "latitude": 42.35011,
       "longitude": -71.10434,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["Graduate School of Arts & Sciences", "GRS"]
     },
     {
       "id": "questrom",
@@ -350,7 +368,8 @@
       "code": "HAR",
       "latitude": 42.349665919765364,
       "longitude": -71.09971063584074,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["School of Management", "SMG", "Questrom"]
     },
     {
       "id": "fitrec",
@@ -431,7 +450,8 @@
       "code": "MUG",
       "latitude": 42.3510118,
       "longitude": -71.1079922,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["Gotlieb Archival Research Center", "Howard Gotlieb"]
     },
     {
       "id": "kcb",
@@ -478,7 +498,8 @@
       "latitude": 42.3490908,
       "longitude": -71.1041456,
       "entrance": [42.34895, -71.10415],
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["Information Technology", "IS&T"]
     },
     {
       "id": "stone",
@@ -496,7 +517,8 @@
       "code": "WED",
       "latitude": 42.3497232,
       "longitude": -71.1008661,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["School of Education", "SED"]
     },
     {
       "id": "ssw",
@@ -514,7 +536,8 @@
       "code": "STH",
       "latitude": 42.3505236,
       "longitude": -71.107545,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["University Professors Program"]
     },
     {
       "id": "epic",
@@ -541,7 +564,8 @@
       "code": "CFA",
       "latitude": 42.3512936,
       "longitude": -71.1138767,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["Stone Gallery", "BU Art Gallery"]
     },
     {
       "id": "sha",
@@ -559,7 +583,8 @@
       "code": "MOR",
       "latitude": 42.3489168,
       "longitude": -71.1009276,
-      "type": "academic"
+      "type": "academic",
+      "aliases": ["Boston University Experience", "BU Experience"]
     },
     {
       "id": "prb",
@@ -863,7 +888,8 @@
       "code": "GSU",
       "latitude": 42.3509672,
       "longitude": -71.1089756,
-      "type": "student_life"
+      "type": "student_life",
+      "aliases": ["Dean of Students"]
     },
     {
       "id": "isso",
@@ -881,7 +907,8 @@
       "code": "",
       "latitude": 42.3514515,
       "longitude": -71.1152592,
-      "type": "student_life"
+      "type": "student_life",
+      "aliases": ["881 Commonwealth Avenue", "Registrar", "Financial Assistance", "Comptroller", "University Service Center"]
     },
     {
       "id": "career",
@@ -925,7 +952,7 @@
       "name": "Sargent Activities Center (SAC)",
       "address": "1 University Rd",
       "code": "SAC",
-      "aliases": ["Student Activities Center"],
+      "aliases": ["Student Activities Center", "Boston University Academy", "BU Academy"],
       "latitude": 42.35116,
       "longitude": -71.1100412,
       "type": "recreation"
@@ -996,6 +1023,16 @@
       "aliases": ["BUPD", "Police"],
       "latitude": 42.3524991,
       "longitude": -71.1186058,
+      "type": "student_life"
+    },
+    {
+      "id": "housing_office",
+      "name": "Housing Office",
+      "address": "25 Buick St",
+      "code": "",
+      "aliases": ["BU Housing", "Housing"],
+      "latitude": 42.3519577,
+      "longitude": -71.1151698,
       "type": "student_life"
     }
   ]
