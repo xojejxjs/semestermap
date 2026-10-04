@@ -734,7 +734,7 @@ function renderClassRow(c) {
         ${classMetaLine(c)}<br>
         <span class="rank-detail">${locationLabel(c.place, c.room)}</span>
         <button type="button" class="link-button edit-button" data-action="open">Edit</button>
-        <button type="button" class="walk-from-button" data-action="walk-from">Walk from here ›</button>
+        <button type="button" class="directions-button" data-action="directions">Directions ›</button>
       </div>
     </li>`;
 }
@@ -1092,9 +1092,9 @@ function handleListClick(event) {
     return;
   }
 
-  // 从这门课出发去别的地方（宿舍、食堂……）：带到 Route check，From 已经填好（my-week.js）
-  if (action === 'walk-from') {
-    walkFromClass(item, null);
+  // 怎么走到这门课：带到 Route check，To 已经填好（my-week.js）
+  if (action === 'directions') {
+    directionsToClass(item, null);
     return;
   }
 

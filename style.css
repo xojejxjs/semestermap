@@ -1685,7 +1685,7 @@ button.walk-row.selected {
   background: var(--action-bg);
 }
 
-#route-picks {
+.route-picks {
   margin-top: 6px;
 }
 
@@ -1731,8 +1731,8 @@ button.walk-row.selected {
   text-decoration: none;
 }
 
-/* "Walk from here ›"：次要操作，小号蓝字、没有边框，不和 "Show route on map" 抢注意力 */
-.walk-from-button {
+/* "Directions ›"：次要操作，小号蓝字、没有边框，不和 "Show route on map" 抢注意力 */
+.directions-button {
   flex: none;
   margin-left: auto;
   min-height: 32px;   /* 手机上手指容易点到 */
@@ -1746,19 +1746,19 @@ button.walk-row.selected {
   white-space: nowrap;
 }
 
-.walk-from-button:hover {
+.directions-button:hover {
   text-decoration: underline;
 }
 
 /* My classes 里点开一门课：放在详情的最下面 */
-.class-row-detail .walk-from-button {
+.class-row-detail .directions-button {
   display: block;
   margin: 4px 0 0;
   padding: 0;
 }
 
 /* 时间线里那一行：按钮和课名对齐，不撑高这一行 */
-.day-class .walk-from-button {
+.day-class .directions-button {
   align-self: center;
 }
 

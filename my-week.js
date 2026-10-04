@@ -168,7 +168,7 @@ function renderDayPlan(result) {
       html += `<li class="day-class"><span class="day-stop">${stopNumber(i + 1)}</span><div>` +
         `<span class="day-time">${escapeHtml(formatClock(c.start))} – ${escapeHtml(formatClock(c.end))}</span>` +
         `<strong>${escapeHtml(c.title)}</strong> <span class="walk-where">${escapeHtml(classWhere(c))}</span></div>` +
-        `<button type="button" class="walk-from-button" data-walk-from="${c.id}">Walk from here ›</button></li>`;
+        `<button type="button" class="directions-button" data-directions="${c.id}">Directions ›</button></li>`;
       if (i < plan.walks.length) {
         html += renderDayWalk(plan.walks[i], i);
       }
@@ -241,7 +241,7 @@ function longBreakText(walk) {
   return `${formatBreak(walk.gap)} break · ~${Math.ceil(route.minutes)} min walk${route.isEstimate ? ' (estimate)' : ''}`;
 }
 
-// ===== 从一门课出发去别的地方（宿舍、食堂……） =====
+// ===== 怎么走到一门课（从宿舍、我现在的位置……） =====
 
 // Route check 下面的 "← Back to …" 要回到哪里：null 是不显示；{ day: 'Wed' } 或 { day: null }（All week）
 let routeBack = null;
@@ -258,21 +258,25 @@ function setRouteBack(target) {
   button.hidden = false;
 }
 
-// 点了某门课的 "Walk from here ›"：切到 Route check，From 填好这门课，To 空着让用户选（下面有常去的地方）
+// 点了某门课的 "Directions ›"：切到 Route check，To 填好这门课，From 让用户选
+// 课一般是终点（"我能不能准时到课"），很少是起点；配合 📍 就是：点课 → 点 📍 → Open in Google Maps
 // 用户不用记课名、不用再打一遍
 // 输入：那门课、从哪一天的时间线点的（null 表示从 My classes 列表点的）
-function walkFromClass(c, day) {
+function directionsToClass(c, day) {
   const from = document.getElementById('from-input');
   const to = document.getElementById('to-input');
-  from.value = myClassLabel(c);
-  to.value = '';
-  logEvent('walk-from-class');
+  to.value = myClassLabel(c);
+  // From 已经是"我现在的位置"就留着（直接出结果）；否则清空，下面会出现 📍 和常去的地方
+  if (from.value !== MY_LOCATION_LABEL) {
+    from.value = '';
+  }
+  logEvent('directions-to-class');
   setRouteBack({ day: day });
   showTab('route');
-  from.dispatchEvent(new Event('change'));
-  // 电脑上直接把光标放进 To；手机上不放，免得键盘弹出来挡住下面的常去地点
-  if (!isPhoneLayout()) {
-    to.focus();
+  to.dispatchEvent(new Event('change'));
+  // 电脑上直接把光标放进 From；手机上不放，免得键盘弹出来挡住 📍 和常去的地方
+  if (!isPhoneLayout() && from.value === '') {
+    from.focus();
   }
 }
 
@@ -433,12 +437,12 @@ function handleWalkClick(event) {
     pickDay(dayButton.dataset.day || null);
     return;
   }
-  // 时间线里的 "Walk from here ›"：从这节课出发去别的地方
-  const walkFrom = event.target.closest('button[data-walk-from]');
-  if (walkFrom) {
-    const c = myClasses.items.find(function (item) { return item.id === Number(walkFrom.dataset.walkFrom); });
+  // 时间线里的 "Directions ›"：怎么走到这节课
+  const directions = event.target.closest('button[data-directions]');
+  if (directions) {
+    const c = myClasses.items.find(function (item) { return item.id === Number(directions.dataset.directions); });
     if (c) {
-      walkFromClass(c, myClasses.day);
+      directionsToClass(c, myClasses.day);
     }
     return;
   }

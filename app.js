@@ -431,20 +431,27 @@ function rememberRecentDestination(text) {
   }
 }
 
-// To 空着时显示：Recent（最近查过的）+ Popular（大家都会去的）；To 填好了就收起来，不占地方
+// 常去的地方：Recent（最近查过的）+ Popular（大家都会去的），显示在"空着的那一栏"下面
+//   To 空着 → 显示在 To 下面，点了填进 To
+//   To 填好了、From 空着（比如点了课的 "Directions"，课是终点）→ 显示在 From 下面，点了填进 From
+//   两栏都填好了 → 收起来，不占地方
 function renderRoutePicks() {
-  const box = document.getElementById('route-picks');
-  if (document.getElementById('to-input').value.trim() !== '') {
-    box.innerHTML = '';
+  const fromEmpty = document.getElementById('from-input').value.trim() === '';
+  const toEmpty = document.getElementById('to-input').value.trim() === '';
+  const slot = toEmpty ? 'to' : (fromEmpty ? 'from' : null);
+  document.getElementById('route-picks').innerHTML = '';
+  document.getElementById('from-picks').innerHTML = '';
+  if (!slot) {
     return;
   }
+  const box = document.getElementById(slot === 'to' ? 'route-picks' : 'from-picks');
   const recent = loadRecentDestinations();
   const popular = routePopular.filter(function (p) {
     return !recent.some(function (r) { return r.toLowerCase() === p.value.toLowerCase(); });
   });
   function chips(items) {
     return items.map(function (item) {
-      return `<button type="button" class="pick-chip" data-pick="${escapeAttr(item.value)}" title="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
+      return `<button type="button" class="pick-chip" data-pick="${escapeAttr(item.value)}" data-slot="${slot}" title="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
     }).join('');
   }
   let html = '';
@@ -612,10 +619,14 @@ async function updateRoute(placeIndex, allowPartial) {
   }
 
   if (!fromPlace || !toPlace) {
-    // 起点已经有了（比如从 "Walk from here" 过来）：只差终点，提示具体一点
-    showRouteMessage(fromPlace && !toPlace
-      ? 'Now choose where you’re going — or tap a place above.'
-      : 'Choose a starting point and a destination to see the walking time.');
+    // 只差一头时，提示具体一点（比如点了课的 "Directions"：终点有了，只差起点）
+    let message = 'Choose a starting point and a destination to see the walking time.';
+    if (fromPlace && !toPlace) {
+      message = 'Now choose where you’re going — or tap a place above.';
+    } else if (toPlace && !fromPlace) {
+      message = 'Now choose where you’re starting from — tap 📍 or a place above.';
+    }
+    showRouteMessage(message);
     return;
   }
   if (fromPlace.id === toPlace.id) {
@@ -630,9 +641,15 @@ async function updateRoute(placeIndex, allowPartial) {
   showRouteResult(result, fromPlace, toPlace);
   drawRouteLine(fromPlace, toPlace);
 
-  // 打完了、算出了结果：记住这个目的地（自己的课不算，下次排在"常去的地方"最前面）
-  if (allowPartial && !toPlace.myClass && !toPlace.isMyLocation) {
-    rememberRecentDestination(toBox.value.trim());
+  // 打完了、算出了结果：记住起点和终点（自己的课、"我的位置"不算），下次排在"常去的地方"最前面
+  // 先记起点再记终点：最近一次的终点排在最前
+  if (allowPartial) {
+    if (!fromPlace.myClass && !fromPlace.isMyLocation) {
+      rememberRecentDestination(fromBox.value.trim());
+    }
+    if (!toPlace.myClass && !toPlace.isMyLocation) {
+      rememberRecentDestination(toBox.value.trim());
+    }
     renderRoutePicks();
   }
 
@@ -833,15 +850,17 @@ async function main() {
   }).filter(Boolean);
   renderRoutePicks();
 
-  // 点一个常去的地方：填进 To，和用户自己选完一样
-  document.getElementById('route-picks').addEventListener('click', function (event) {
-    const chip = event.target.closest('button[data-pick]');
-    if (chip) {
-      const to = document.getElementById('to-input');
-      to.value = chip.dataset.pick;
-      logEvent('route-pick');
-      to.dispatchEvent(new Event('change'));
-    }
+  // 点一个常去的地方：填进按钮所在的那一栏（From 或 To），和用户自己选完一样
+  ['route-picks', 'from-picks'].forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function (event) {
+      const chip = event.target.closest('button[data-pick]');
+      if (chip) {
+        const box = document.getElementById(chip.dataset.slot === 'from' ? 'from-input' : 'to-input');
+        box.value = chip.dataset.pick;
+        logEvent('route-pick');
+        box.dispatchEvent(new Event('change'));
+      }
+    });
   });
 
   // 📍 从我现在的位置出发
