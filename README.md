@@ -25,6 +25,7 @@
 - **Any address** — type a street address near BU (e.g. an off-campus apartment) and it is found on the map with OpenStreetMap Nominatim. Drag the pin if the spot is slightly off.
 - **Class locations** — type a room from your schedule, like `CAS 211` or `PHO 206`, using official BU building codes.
 - **My classes** — add your schedule as screenshots, the BU calendar file (.ics), PDF, Word (.docx) or text. Classes are matched by course number first, then by type (lecture, discussion…) and time; days and times are standardised (Mon, Wed, Fri · 9:05 AM – 9:55 AM). Each building on the map shows how many of your classes meet there. Locations guessed from the course number always need your confirmation.
+- **Send to another device** — move your schedule from laptop to phone (scan a QR code) or phone to laptop (AirDrop, Messages, WeChat, email), or send it to a friend for Shared classes. The schedule is packed into the part of the link after `#`, which browsers never send to any server, so nothing is uploaded.
 - **Dorm ranking** — choose a building and see every dorm ranked by walking time to it.
 - Works on phones as well as laptops.
 

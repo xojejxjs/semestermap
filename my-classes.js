@@ -631,8 +631,10 @@ function renderMyClasses() {
 
   // 4. 告诉用户课存在哪里，并且可以一键清空（比如用的是公用电脑）
   if (!myClasses.selecting) {
+    // 只存在这个浏览器里 → 紧接着给出"传到另一台设备"（share.js），在用户最需要的地方
     html += `<p class="saved-note">💾 Saved in this browser only, so your classes are still here next time.
-      <button type="button" class="link-button" data-action="clear-all">Clear all classes</button></p>`;
+      <button type="button" class="link-button" data-action="clear-all">Clear all classes</button></p>
+      <p class="share-row"><button type="button" class="link-button share-button" data-action="share">📤 Send to your phone or laptop</button></p>`;
   }
 
   list.innerHTML = html;
@@ -1053,6 +1055,12 @@ function handleListClick(event) {
     return;
   }
 
+  // 把课表传到另一台设备（share.js）
+  if (action === 'share') {
+    openSharePanel();
+    return;
+  }
+
   // 清空所有的课（包括跳过的），这个浏览器里存的也一起删掉；8 秒内可以 Undo
   if (action === 'clear-all') {
     const n = myClasses.items.length;
@@ -1320,7 +1328,7 @@ function renderImportChoice() {
       <label class="location-option">
         <input type="radio" name="import-target" value="new">
         <span>Save as a new schedule:
-          <input type="text" id="import-name" maxlength="40" value="${escapeAttr(nextScheduleName())}">
+          <input type="text" id="import-name" maxlength="40" value="${escapeAttr(pending.suggestedName || nextScheduleName())}">
         </span>
       </label>
       ${looksDifferent}
@@ -1507,6 +1515,9 @@ function initMyClasses(placeIndex) {
       status.textContent = `Welcome back: loaded ${count} saved ${count === 1 ? 'class' : 'classes'}. ` + status.textContent;
     }
   }
+
+  // 打开的是别人（或自己另一台设备）发来的课表链接：读进来（share.js）
+  initShare(placeIndex);
 }
 
 console.log('my-classes.js loaded');

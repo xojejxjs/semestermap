@@ -1832,3 +1832,52 @@ li.walk-expanded button.walk-row.selected {
   margin: 0;
   border-top-color: rgba(0, 0, 0, 0.12); /* 卡片有底色（红 / 黄 / 绿），浅灰线看不清，用半透明黑 */
 }
+
+/* ===== 把课表传到另一台设备（share.js） ===== */
+.share-row {
+  margin: 4px 0 0;
+}
+
+.share-button {
+  color: var(--action);
+  text-decoration: none;
+}
+
+#share-panel {
+  margin-top: 10px;
+}
+
+.share-box {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.share-qr {
+  width: 200px;
+  max-width: 100%;
+  margin: 10px 0 4px;
+}
+
+.share-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.share-copied {
+  color: var(--ok);
+  word-break: break-all;  /* 不能自动复制时会显示整条链接 */
+}
+
+.share-warning {
+  margin-top: 8px;
+}
