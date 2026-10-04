@@ -208,13 +208,6 @@ function lookupWalkTime(fromId, toId) {
   return { seconds: seconds, meters: walkTable.meters[i][j] };
 }
 
-// 计算 A → B 的距离和步行时间，并判断来不来得及
-// 输入：起点对象、终点对象、课间分钟数
-// 输出：一个结果对象 { meters, minutes, verdict }
-function checkRoute(fromPlace, toPlace, gapMinutes) {
-  return judgeRoute(measureRoute(fromPlace, toPlace), gapMinutes);
-}
-
 // 根据一条路线的距离和时间，判断来不来得及
 // 单独拿出来，是因为时间有两个来源：measureRoute（查表 / 估算）和后端的真实路线，判断规则只写一份
 // 输入：{ meters, minutes, isEstimate }、课间分钟数
@@ -240,56 +233,94 @@ function judgeRoute(route, gapMinutes) {
 }
 
 // 把结果显示到 #route-result
-// 输入：checkRoute 的结果、起点、终点、课间分钟数
-// 输出：网页上的结果区域被更新
-function showRouteResult(result, fromPlace, toPlace, gapMinutes) {
+// Route check 只回答"走过去要多久"，不判断来不来得及（那是 My week 的事，课间分钟数来自课表）
+// 所以卡片是中性的白色：🟢🟡🔴 只用来表示"来不来得及"
+// 输入：measureRoute 的结果 { meters, minutes, isEstimate }、起点、终点
+function showRouteResult(result, fromPlace, toPlace) {
   const box = document.getElementById('route-result');
-
-  const verdictText = {
-    green: '🟢 Easy — you have time to spare',
-    yellow: '🟡 Tight — no room for delays',
-    red: '🔴 Not enough time'
-  };
-
-  // 两端都是教学楼才叫"课间"；有宿舍参与时用中性说法
-  let timeText = `You have ${gapMinutes} min`;
-  if (isBetweenClasses(fromPlace, toPlace)) {
-    timeText = `Time between classes: ${gapMinutes} min`;
-  }
+  const minutes = Math.ceil(result.minutes);
 
   // 真实路线和估算要说清楚是哪一种，不能让估算看起来像真实数据
-  let distanceText = `Walking distance: ${formatDistance(result.meters)}`;
-  let walkText = `Walk: ~${Math.ceil(result.minutes)} min (along streets)`;
-  if (result.isEstimate) {
-    distanceText = `Straight-line distance: ${formatDistance(result.meters)}`;
-    walkText = `Estimated walk: ~${Math.ceil(result.minutes)} min (rough estimate, not a real route)`;
-  }
+  const meta = result.isEstimate
+    ? `~${formatDistance(result.meters)} straight-line · rough estimate, not a real route`
+    : `${formatDistance(result.meters)} · along streets`;
 
-  box.className = 'verdict-' + result.verdict; // 换背景色
+  // 名字可能来自用户的课表文件或查到的地址：先转义再放进 innerHTML
+  box.className = 'route-done';
   box.innerHTML = `
-    <p><strong>${fromPlace.name} → ${toPlace.name}</strong></p>
-    <p>${distanceText}</p>
-    <p>${walkText}</p>
-    <p>${timeText} → ${verdictText[result.verdict]}</p>
+    <p class="route-minutes">${result.isEstimate ? '~' : ''}${minutes} min walk</p>
+    <p class="route-meta">${escapeHtml(meta)}</p>
+    <p class="route-ends">${escapeHtml(fromPlace.name)} → ${escapeHtml(toPlace.name)}</p>
   `;
 }
 
-// 判断这段路是不是"两节课之间"：起点和终点都选好、并且都是教学楼
-// 输入：起点对象、终点对象（还没选时是 undefined）
-// 输出：true / false
-function isBetweenClasses(fromPlace, toPlace) {
-  return Boolean(fromPlace && toPlace &&
-    fromPlace.kind === 'building' && toPlace.kind === 'building');
+// ===== 常去的地方（To 下面的一排小按钮） =====
+
+// 大家都会去的地点；label 是按钮上的短名字
+const ROUTE_POPULAR = [
+  { id: 'gsu', label: 'GSU' },
+  { id: 'fitrec', label: 'FitRec' },
+  { id: 'mugar', label: 'Mugar Library' },
+  { id: 'dining_marciano', label: 'Marciano Commons' }
+];
+let routePopular = []; // main() 里根据 data.json 填好：[{ label, value }]
+
+// 最近查过的目的地：只存在用户自己的浏览器里，读不到（隐私模式等）也没关系
+const RECENT_KEY = 'bu-dorm-dash:recent-to';
+const RECENT_MAX = 3;
+
+function loadRecentDestinations() {
+  try {
+    const list = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+    return Array.isArray(list) ? list.filter(function (x) { return typeof x === 'string'; }).slice(0, RECENT_MAX) : [];
+  } catch (error) {
+    return [];
+  }
 }
 
-// 换输入框上面那句话
-// 输入：起点对象、终点对象
-function updateGapLabel(fromPlace, toPlace) {
-  let text = 'Minutes you have to get there';
-  if (isBetweenClasses(fromPlace, toPlace)) {
-    text = 'Minutes between classes';
+// 输入：输入框里的文字（下次点按钮时原样填回去，一定找得到）
+function rememberRecentDestination(text) {
+  if (text === '') {
+    return;
   }
-  document.getElementById('gap-label').textContent = text;
+  const list = loadRecentDestinations().filter(function (x) { return x.toLowerCase() !== text.toLowerCase(); });
+  list.unshift(text);
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
+  } catch (error) {
+    // 存不了就算了，只是下次没有"Recent"
+  }
+}
+
+// To 空着时显示：Recent（最近查过的）+ Popular（大家都会去的）；To 填好了就收起来，不占地方
+function renderRoutePicks() {
+  const box = document.getElementById('route-picks');
+  if (document.getElementById('to-input').value.trim() !== '') {
+    box.innerHTML = '';
+    return;
+  }
+  const recent = loadRecentDestinations();
+  const popular = routePopular.filter(function (p) {
+    return !recent.some(function (r) { return r.toLowerCase() === p.value.toLowerCase(); });
+  });
+  function chips(items) {
+    return items.map(function (item) {
+      return `<button type="button" class="pick-chip" data-pick="${escapeAttr(item.value)}" title="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
+    }).join('');
+  }
+  let html = '';
+  if (recent.length > 0) {
+    // 最近去过的如果也是常去的地方（比如 GSU），按钮上用短名字
+    const recentItems = recent.map(function (r) {
+      const known = routePopular.find(function (p) { return p.value.toLowerCase() === r.toLowerCase(); });
+      return { label: known ? known.label : r, value: r };
+    });
+    html += `<div class="pick-row"><span class="pick-label">Recent</span>${chips(recentItems)}</div>`;
+  }
+  if (popular.length > 0) {
+    html += `<div class="pick-row"><span class="pick-label">Popular</span>${chips(popular)}</div>`;
+  }
+  box.innerHTML = html;
 }
 
 // 在结果区域显示一句提示（没选完、输入不对时用）
@@ -392,7 +423,7 @@ async function updateRoute(placeIndex, allowPartial) {
   const toBox = document.getElementById('to-input');
   const fromPlace = await resolvePlaceInput(fromBox, 'from', placeIndex, allowPartial);
   const toPlace = await resolvePlaceInput(toBox, 'to', placeIndex, allowPartial);
-  const gapMinutes = Number(document.getElementById('gap-input').value);
+  renderRoutePicks(); // To 空着时才显示"常去的地方"
 
   if (requestId !== routeRequestId) {
     return; // 等待期间又有新的输入，这次的结果作废
@@ -417,9 +448,6 @@ async function updateRoute(placeIndex, allowPartial) {
   // 先清掉旧的线；如果下面因为输入不完整提前 return，地图上就不会留下过时的线
   clearRouteLine();
 
-  // 马上更新标签文字（不用等所有检查都通过）
-  updateGapLabel(fromPlace, toPlace);
-
   // 打完了但找不到：告诉用户是哪个没找到
   if (allowPartial) {
     const missing = [fromBox, toBox].find(function (box, i) {
@@ -432,7 +460,10 @@ async function updateRoute(placeIndex, allowPartial) {
   }
 
   if (!fromPlace || !toPlace) {
-    showRouteMessage('Choose a starting point and a destination to see the walking time.');
+    // 起点已经有了（比如从 "Walk from here" 过来）：只差终点，提示具体一点
+    showRouteMessage(fromPlace && !toPlace
+      ? 'Now choose where you’re going — or tap a place above.'
+      : 'Choose a starting point and a destination to see the walking time.');
     return;
   }
   if (fromPlace.id === toPlace.id) {
@@ -442,15 +473,16 @@ async function updateRoute(placeIndex, allowPartial) {
     focusRouteEnds();
     return;
   }
-  if (!(gapMinutes > 0)) {
-    showRouteMessage('Enter a number of minutes greater than 0.');
-    return;
-  }
-
   // 第一轮：马上显示（已知地点查表，地址用直线估算；地图先画虚线）
-  let result = checkRoute(fromPlace, toPlace, gapMinutes);
-  showRouteResult(result, fromPlace, toPlace, gapMinutes);
-  drawRouteLine(fromPlace, toPlace, result.verdict);
+  let result = measureRoute(fromPlace, toPlace);
+  showRouteResult(result, fromPlace, toPlace);
+  drawRouteLine(fromPlace, toPlace);
+
+  // 打完了、算出了结果：记住这个目的地（自己的课不算，下次排在"常去的地方"最前面）
+  if (allowPartial && !toPlace.myClass) {
+    rememberRecentDestination(toBox.value.trim());
+    renderRoutePicks();
+  }
 
   // 第二轮：问后端要真实路线（后端不可用时返回 null，第一轮的结果就保留着）
   const real = await fetchRealRoute(fromPlace, toPlace);
@@ -460,11 +492,11 @@ async function updateRoute(placeIndex, allowPartial) {
 
   // 地址这类只有估算的：换成后端算出的真实时间。已知地点保持查表的时间，和排名里的数字一致
   if (result.isEstimate) {
-    result = judgeRoute({ meters: real.meters, minutes: real.seconds / 60, isEstimate: false }, gapMinutes);
-    showRouteResult(result, fromPlace, toPlace, gapMinutes);
+    result = { meters: real.meters, minutes: real.seconds / 60, isEstimate: false };
+    showRouteResult(result, fromPlace, toPlace);
   }
   console.log('Route result:', result);
-  drawRouteLine(fromPlace, toPlace, result.verdict, real.path);
+  drawRouteLine(fromPlace, toPlace, null, real.path);
 }
 
 // 生成"排名依据"下拉框的选项：只列出教学楼（包括 FitRec）
@@ -642,10 +674,36 @@ async function main() {
     });
   });
 
-  // 课间时间：边打字边更新结果
-  document.getElementById('gap-input').addEventListener('input', function () {
+  // 常去的地方：几个大家都会去的地点（名字从 data.json 里拿，和候选列表里的一样）
+  routePopular = ROUTE_POPULAR.map(function (item) {
+    const place = findPlaceById(places, item.id);
+    return place ? { label: item.label, value: place.name } : null;
+  }).filter(Boolean);
+  renderRoutePicks();
+
+  // 点一个常去的地方：填进 To，和用户自己选完一样
+  document.getElementById('route-picks').addEventListener('click', function (event) {
+    const chip = event.target.closest('button[data-pick]');
+    if (chip) {
+      const to = document.getElementById('to-input');
+      to.value = chip.dataset.pick;
+      logEvent('route-pick');
+      to.dispatchEvent(new Event('change'));
+    }
+  });
+
+  // ⇅ 交换起点和终点
+  document.getElementById('swap-route').addEventListener('click', function () {
+    const from = document.getElementById('from-input');
+    const to = document.getElementById('to-input');
+    const old = from.value;
+    from.value = to.value;
+    to.value = old;
     updateRoute(placeIndex, true);
   });
+
+  // "← Back to Wednesday"：回到 My week 刚才看的那一天（my-week.js）
+  document.getElementById('route-back').addEventListener('click', returnFromRoute);
 
   // 生成"排名依据"下拉框，并监听它的变化
   document.getElementById('rank-select').innerHTML = buildBuildingOptions(data.buildings);

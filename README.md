@@ -20,7 +20,8 @@
 - **Map of BU dorms and buildings** — 19 dorm locations (including Warren's towers, Bay State Road brownstones and the Fenway Campus) and 32 academic buildings, dining halls, recreation and student-service locations, color-coded by type.
 - **Dorm details** — room types, amenities, floor plans, virtual tours and a link to the official BU Housing page.
 - **Dorm search** — search by official name, nickname or address (e.g. `Warren`, `StuVi`, `Myles`, `188 Bay State Road`). The selected building is outlined on the map.
-- **Route check** — pick any two places and the minutes you have. The tool looks up the real walking time and says whether you'll make it: 🟢 easy, 🟡 tight, 🔴 not enough time.
+- **Route check** — how long is the walk between any two places? Pick a dorm, building, one of your classes or a street address (tap **Walk from here** on a class to start from it). Recent and popular destinations are one tap away.
+- **Walks between classes** — every back-to-back pair in your week is checked against the real walking time: 🟢 easy, 🟡 tight, 🔴 not enough time. Pick a weekday to see that day's classes in order.
 - **Any address** — type a street address near BU (e.g. an off-campus apartment) and it is found on the map with OpenStreetMap Nominatim. Drag the pin if the spot is slightly off.
 - **Class locations** — type a room from your schedule, like `CAS 211` or `PHO 206`, using official BU building codes.
 - **My classes** — add your schedule as screenshots, the BU calendar file (.ics), PDF, Word (.docx) or text. Classes are matched by course number first, then by type (lecture, discussion…) and time; days and times are standardised (Mon, Wed, Fri · 9:05 AM – 9:55 AM). Each building on the map shows how many of your classes meet there. Locations guessed from the course number always need your confirmation.

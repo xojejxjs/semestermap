@@ -167,7 +167,8 @@ function renderDayPlan(result) {
       // 左边是顺序编号（和地图上的 ①②③ 一样），右边第一行时间、第二行课名和教室
       html += `<li class="day-class"><span class="day-stop">${stopNumber(i + 1)}</span><div>` +
         `<span class="day-time">${escapeHtml(formatClock(c.start))} – ${escapeHtml(formatClock(c.end))}</span>` +
-        `<strong>${escapeHtml(c.title)}</strong> <span class="walk-where">${escapeHtml(classWhere(c))}</span></div></li>`;
+        `<strong>${escapeHtml(c.title)}</strong> <span class="walk-where">${escapeHtml(classWhere(c))}</span></div>` +
+        `<button type="button" class="walk-from-button" data-walk-from="${c.id}">Walk from here ›</button></li>`;
       if (i < plan.walks.length) {
         html += renderDayWalk(plan.walks[i], i);
       }
@@ -203,7 +204,7 @@ function renderDayWalk(walk, index) {
   } else if (walk.kind === 'long') {
     icon = '🟢';
     color = 'long';
-    detail = `${formatBreak(walk.gap)} break`;
+    detail = longBreakText(walk);
   } else {
     const route = walk.route;
     icon = { green: '🟢', yellow: '🟡', red: '🔴' }[route.verdict];
@@ -231,6 +232,62 @@ function pickDay(day) {
   clearRouteLine();
   selectClassPlace(null);
   renderMyClasses(); // 时间线和地图（只显示那天的楼、加编号）一起更新
+}
+
+// 课间很长的那一行：不用赶，但还是告诉用户要走多久
+// 输出："1 hr 20 min break · ~15 min walk"
+function longBreakText(walk) {
+  const route = measureRoute(walk.from.place, walk.to.place);
+  return `${formatBreak(walk.gap)} break · ~${Math.ceil(route.minutes)} min walk${route.isEstimate ? ' (estimate)' : ''}`;
+}
+
+// ===== 从一门课出发去别的地方（宿舍、食堂……） =====
+
+// Route check 下面的 "← Back to …" 要回到哪里：null 是不显示；{ day: 'Wed' } 或 { day: null }（All week）
+let routeBack = null;
+
+// 输入：null，或者 { day }
+function setRouteBack(target) {
+  routeBack = target;
+  const button = document.getElementById('route-back');
+  if (!target) {
+    button.hidden = true;
+    return;
+  }
+  button.textContent = target.day ? `← Back to ${DAY_FULL_NAMES[target.day]}` : '← Back to My week';
+  button.hidden = false;
+}
+
+// 点了某门课的 "Walk from here ›"：切到 Route check，From 填好这门课，To 空着让用户选（下面有常去的地方）
+// 用户不用记课名、不用再打一遍
+// 输入：那门课、从哪一天的时间线点的（null 表示从 My classes 列表点的）
+function walkFromClass(c, day) {
+  const from = document.getElementById('from-input');
+  const to = document.getElementById('to-input');
+  from.value = myClassLabel(c);
+  to.value = '';
+  logEvent('walk-from-class');
+  setRouteBack({ day: day });
+  showTab('route');
+  from.dispatchEvent(new Event('change'));
+  // 电脑上直接把光标放进 To；手机上不放，免得键盘弹出来挡住下面的常去地点
+  if (!isPhoneLayout()) {
+    to.focus();
+  }
+}
+
+// "← Back to Wednesday"：回到 My week 刚才看的那一天
+function returnFromRoute() {
+  const target = routeBack;
+  setRouteBack(null);
+  if (!target) {
+    return;
+  }
+  if (target.day !== myClasses.day) {
+    pickDay(target.day);
+  }
+  showTab('week');
+  document.getElementById('class-walks').scrollIntoView({ block: 'start' });
 }
 
 // 排序用的等级：数字越小越靠前
@@ -342,7 +399,7 @@ function renderWalkRow(walk) {
   } else if (walk.kind === 'long') {
     icon = '🟢';
     color = 'long';
-    detail = `${formatBreak(walk.gap)} break`;
+    detail = longBreakText(walk);
   } else {
     const route = walk.route;
     icon = { green: '🟢', yellow: '🟡', red: '🔴' }[route.verdict];
@@ -376,6 +433,15 @@ function handleWalkClick(event) {
     pickDay(dayButton.dataset.day || null);
     return;
   }
+  // 时间线里的 "Walk from here ›"：从这节课出发去别的地方
+  const walkFrom = event.target.closest('button[data-walk-from]');
+  if (walkFrom) {
+    const c = myClasses.items.find(function (item) { return item.id === Number(walkFrom.dataset.walkFrom); });
+    if (c) {
+      walkFromClass(c, myClasses.day);
+    }
+    return;
+  }
   const row = event.target.closest('button[data-walk]');
   if (!row) {
     return;
@@ -386,7 +452,7 @@ function handleWalkClick(event) {
   }
   // 在地图上画出这段路（Route check 也会填好，切过去就能看到详细结果）
   // 留在 My week 里不跳走：这一行本身已经写了结论；地图在旁边（手机上在上面）
-  fillRouteCheck(walk.from, walk.to, walk.gap);
+  fillRouteCheck(walk.from, walk.to);
   document.querySelectorAll('#class-walks .walk-row.selected').forEach(function (el) {
     el.classList.remove('selected');
   });

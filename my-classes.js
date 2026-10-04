@@ -390,19 +390,20 @@ function fillSampleRoute() {
   const macro = myClasses.items.find(function (c) { return c.sample && c.course === 'CASEC 102'; });
   const sha = myClasses.items.find(function (c) { return c.sample && c.course === 'SHAHF 150'; });
   if (macro && sha) {
-    fillRouteCheck(macro, sha, 15); // 9:55 下课 → 10:10 上课
+    fillRouteCheck(macro, sha); // 9:55 下课 → 10:10 上课
   }
 }
 
-// 在 Route check 里填好"从哪门课 → 到哪门课"和课间分钟数，然后算路线、在地图上画线
+// 在 Route check 里填好"从哪门课 → 到哪门课"，然后算路线、在地图上画线
 // 示例按钮和 "Your walks between classes" 的每一行（my-week.js）共用
-// 输入：前一节课、后一节课、课间分钟数
-function fillRouteCheck(fromClass, toClass, gapMinutes) {
+// 来不来得及写在 walk 那一行上（课间分钟数来自课表）；Route check 只显示要走多久
+// 输入：前一节课、后一节课
+function fillRouteCheck(fromClass, toClass) {
   const from = document.getElementById('from-input');
   const to = document.getElementById('to-input');
   from.value = myClassLabel(fromClass);
   to.value = myClassLabel(toClass);
-  document.getElementById('gap-input').value = gapMinutes;
+  setRouteBack(null); // 用户留在 My week 里，不需要"返回"
   // 和用户自己选完一样，让 app.js 去算路线
   from.dispatchEvent(new Event('change'));
   to.dispatchEvent(new Event('change'));
@@ -733,6 +734,7 @@ function renderClassRow(c) {
         ${classMetaLine(c)}<br>
         <span class="rank-detail">${locationLabel(c.place, c.room)}</span>
         <button type="button" class="link-button edit-button" data-action="open">Edit</button>
+        <button type="button" class="walk-from-button" data-action="walk-from">Walk from here ›</button>
       </div>
     </li>`;
 }
@@ -1087,6 +1089,12 @@ function handleListClick(event) {
     myClasses.mapPlaceId = null; // 用户自己在列表里点了一门课，不再标出地图上点的那栋楼
     renderMyClasses();
     selectClassPlace(myClasses.expandedId !== null ? item.place : null);
+    return;
+  }
+
+  // 从这门课出发去别的地方（宿舍、食堂……）：带到 Route check，From 已经填好（my-week.js）
+  if (action === 'walk-from') {
+    walkFromClass(item, null);
     return;
   }
 

@@ -153,10 +153,27 @@ main {
   margin: 4px 0;
 }
 
-/* 三种结论的背景色 */
-#route-result.verdict-green  { background: var(--ok-bg); }
-#route-result.verdict-yellow { background: var(--tight-bg); }
-#route-result.verdict-red    { background: var(--late-bg); }
+/* 算出了结果：白色卡片（Route check 不判断来不来得及，所以不用 🟢🟡🔴 的颜色） */
+#route-result.route-done {
+  background: white;
+  border: 1px solid var(--line);
+}
+
+#route-result .route-minutes {
+  margin: 0 0 2px;
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--ink);
+}
+
+#route-result .route-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+#route-result .route-ends {
+  font-size: 13px;
+}
 
 /* 宿舍排名列表 */
 #results {
@@ -1644,4 +1661,103 @@ button.walk-row.selected {
 .day-head .link-button {
   color: var(--action);
   text-decoration: none;
+}
+
+/* ===== Route check：交换、常去的地方、返回（app.js / my-week.js） ===== */
+.swap-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4px 0 -8px;
+}
+
+.swap-button {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  font: inherit;
+  font-size: 12px;
+  color: var(--action);
+  cursor: pointer;
+}
+
+.swap-button:hover {
+  background: var(--action-bg);
+}
+
+#route-picks {
+  margin-top: 6px;
+}
+
+.pick-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pick-label {
+  width: 56px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 和 Shared classes 的人名按钮同一种样子 */
+.pick-chip {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pick-chip:hover {
+  border-color: var(--action);
+  color: var(--action);
+}
+
+.route-back {
+  display: block;
+  margin-top: 12px;
+  color: var(--action);
+  text-decoration: none;
+}
+
+/* "Walk from here ›"：次要操作，小号蓝字、没有边框，不和 "Show route on map" 抢注意力 */
+.walk-from-button {
+  flex: none;
+  margin-left: auto;
+  min-height: 32px;   /* 手机上手指容易点到 */
+  padding: 0 2px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--action);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.walk-from-button:hover {
+  text-decoration: underline;
+}
+
+/* My classes 里点开一门课：放在详情的最下面 */
+.class-row-detail .walk-from-button {
+  display: block;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+/* 时间线里那一行：按钮和课名对齐，不撑高这一行 */
+.day-class .walk-from-button {
+  align-self: center;
 }
