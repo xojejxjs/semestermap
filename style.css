@@ -1786,7 +1786,7 @@ button.walk-row.selected {
 }
 
 /* 结果卡片最下面：Open in Google Maps › / Open in Apple Maps › */
-#route-result .route-open {
+.route-open {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
@@ -1796,12 +1796,39 @@ button.walk-row.selected {
   font-size: 13px;
 }
 
-#route-result .route-open a {
+.route-open a {
   color: var(--action);
   text-decoration: none;
   font-weight: bold;
 }
 
-#route-result .route-open a:hover {
+.route-open a:hover {
   text-decoration: underline;
+}
+
+/* My week 里点了一段路：下面展开 "Open in Google Maps ›"，和按钮接成一张卡片（my-week.js showOpenInMaps） */
+li.walk-expanded {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+li.walk-expanded button.walk-row.selected {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: none;
+}
+
+.walk-open {
+  margin-bottom: 0;
+  padding-top: 0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+/* 分隔线在这里画（和 Route check 卡片一样：一条细线 + 两个蓝色链接） */
+.walk-open .route-open {
+  margin: 0;
+  border-top-color: rgba(0, 0, 0, 0.12); /* 卡片有底色（红 / 黄 / 绿），浅灰线看不清，用半透明黑 */
 }

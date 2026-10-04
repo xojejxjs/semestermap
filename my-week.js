@@ -175,7 +175,7 @@ function renderDayPlan(result) {
     });
     html += '</ol>';
     if (plan.walks.length > 0) {
-      html += '<p class="hint">Tap a walk to see the route on the map.</p>';
+      html += '<p class="hint">Tap a walk to see the route on the map, then open it in your maps app.</p>';
     }
   }
 
@@ -351,7 +351,7 @@ function renderClassWalks() {
   // 1. 要注意的：冲突、🔴、🟡、🟢（已经按这个顺序排好）
   if (urgent.length > 0) {
     html += '<ul class="walk-list">' + urgent.map(renderWalkRow).join('') + '</ul>';
-    html += '<p class="hint">Tap a walk to see the route on the map.</p>';
+    html += '<p class="hint">Tap a walk to see the route on the map, then open it in your maps app.</p>';
   }
 
   // 2. 课间很长的：不用赶，折叠起来
@@ -453,10 +453,32 @@ function handleWalkClick(event) {
   // 在地图上画出这段路（Route check 也会填好，切过去就能看到详细结果）
   // 留在 My week 里不跳走：这一行本身已经写了结论；地图在旁边（手机上在上面）
   fillRouteCheck(walk.from, walk.to);
+  // 上一段选中的：取消选中，收起它下面的 "Open in Google Maps"
   document.querySelectorAll('#class-walks .walk-row.selected').forEach(function (el) {
     el.classList.remove('selected');
   });
+  document.querySelectorAll('#class-walks .walk-open').forEach(function (el) {
+    el.parentElement.classList.remove('walk-expanded');
+    el.remove();
+  });
   row.classList.add('selected');
+  showOpenInMaps(row, walk);
+}
+
+// 点了一段路：这一行下面展开 "Open in Google Maps › · Apple Maps ›"（渐进式展示：用户表现出兴趣时才给下一步）
+// 一次只有一行展开，页面平时保持干净
+// 链接不能放进 <button> 里（HTML 不允许，手机上点击会出问题），所以放在按钮下面，样式上接成一张卡片
+// 输入：那一行的按钮、那段路
+function showOpenInMaps(row, walk) {
+  if (walk.kind === 'same') {
+    return; // 同一栋楼：没有路可以导航
+  }
+  const color = Array.from(row.classList).find(function (name) { return name.indexOf('walk-') === 0 && name !== 'walk-row'; });
+  const box = document.createElement('div');
+  box.className = 'walk-row walk-open ' + (color || '');
+  box.innerHTML = renderOpenInMaps(walk.from.place, walk.to.place); // app.js，和 Route check 卡片底部一模一样
+  row.after(box);
+  row.parentElement.classList.add('walk-expanded');
 }
 
 // 一行总结：🔴 1 can't make · 🟡 1 tight · 🟢 2 fine（还有时间冲突的话也写上）
