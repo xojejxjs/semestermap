@@ -251,7 +251,146 @@ function showRouteResult(result, fromPlace, toPlace) {
     <p class="route-minutes">${result.isEstimate ? '~' : ''}${minutes} min walk</p>
     <p class="route-meta">${escapeHtml(meta)}</p>
     <p class="route-ends">${escapeHtml(fromPlace.name)} → ${escapeHtml(toPlace.name)}</p>
+    ${renderOpenInMaps(fromPlace, toPlace)}
   `;
+}
+
+// ===== 交给真正的导航软件 =====
+// 逐步导航（"前方左转"、走错路重新规划）Google / Apple Maps 已经做得很好，我们不重做：
+// 用户真的要走的时候，一键打开地图 App，起点、终点、步行模式都填好
+
+// 苹果设备（iPhone、iPad、Mac）才显示 Apple Maps
+function isApplePlatform() {
+  return /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+}
+
+// 地点 → "纬度,经度"（有入口坐标就用入口，和步行时间表一致）
+function placeCoords(place) {
+  const point = place.entrance || [place.latitude, place.longitude];
+  return point[0].toFixed(6) + ',' + point[1].toFixed(6);
+}
+
+// 输出：两个链接的 HTML；起点是"我现在的位置"时不写起点，导航软件会用手机的实时位置（走路时会跟着更新）
+function renderOpenInMaps(fromPlace, toPlace) {
+  const to = placeCoords(toPlace);
+  const google = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=' + to +
+    (fromPlace.isMyLocation ? '' : '&origin=' + placeCoords(fromPlace));
+  let html = `<p class="route-open"><a href="${google}" target="_blank" rel="noopener" data-open-maps="google">Open in Google Maps ›</a>`;
+  if (isApplePlatform()) {
+    const apple = 'https://maps.apple.com/?dirflg=w&daddr=' + to +
+      (fromPlace.isMyLocation ? '' : '&saddr=' + placeCoords(fromPlace));
+    html += `<a href="${apple}" target="_blank" rel="noopener" data-open-maps="apple">Open in Apple Maps ›</a>`;
+  }
+  return html + '</p>';
+}
+
+// ===== 从我现在的位置出发 =====
+// 只在用户点了 "📍 Use my location" 以后才问浏览器要位置；打开网站时绝不问
+// 位置只存在这个页面里：蓝点、直线估算都在浏览器里算；画沿街道的路线时会发给我们的后端（不保存）
+
+const MY_LOCATION_LABEL = '📍 Your location'; // 输入框里显示的文字；看到它就代表"我现在的位置"
+let myLocation = null;       // { latitude, longitude, accuracy }；还没定位时是 null
+let locationWatchId = null;  // 正在跟踪位置时，watchPosition 返回的编号
+let routePlaceIndex = null;  // main() 里存好，定位成功后要用它重新算路线
+
+// From 或 To 里是不是"我现在的位置"
+function locationInUse() {
+  return [document.getElementById('from-input'), document.getElementById('to-input')].some(function (box) {
+    return box.value === MY_LOCATION_LABEL;
+  });
+}
+
+// 把"我现在的位置"变成和其他地点一样的对象，后面的计算、画线都能直接用
+// kind 是 'location'：不在步行时间表里，所以先用直线估算，再问后端要真实路线（和输入地址一样）
+function myLocationPlace() {
+  return {
+    id: 'my-location',
+    name: 'Your location',
+    latitude: myLocation.latitude,
+    longitude: myLocation.longitude,
+    kind: 'location',
+    isMyLocation: true
+  };
+}
+
+// 点了 "📍 Use my location"
+function useMyLocation() {
+  const button = document.getElementById('use-location');
+  if (!navigator.geolocation) {
+    showRouteMessage('This browser can’t share your location. Pick a place instead.');
+    return;
+  }
+  button.disabled = true;
+  button.textContent = '📍 Finding you…';
+  showRouteMessage('Finding your location…');
+
+  navigator.geolocation.getCurrentPosition(function (position) {
+    button.disabled = false;
+    button.textContent = '📍 Use my location';
+    setMyLocation(position);
+    logEvent('use-location'); // 只记"用了定位"这件事，绝不发送位置
+
+    // 放进 From（如果 To 里已经是"我的位置"，就不动，免得两边一样）
+    const from = document.getElementById('from-input');
+    const to = document.getElementById('to-input');
+    if (to.value !== MY_LOCATION_LABEL) {
+      from.value = MY_LOCATION_LABEL;
+    }
+    startLocationWatch();
+    // 还没选目的地：地图先移到你在的地方
+    if (to.value.trim() === '') {
+      map.setView([myLocation.latitude, myLocation.longitude], Math.max(map.getZoom(), 16));
+      bringMapIntoView();
+    }
+    updateRoute(routePlaceIndex, true);
+  }, function (error) {
+    button.disabled = false;
+    button.textContent = '📍 Use my location';
+    // 每种失败都说清楚原因和下一步，不能什么都不显示
+    const messages = {
+      1: 'Location is off for this site. Turn it on in your browser settings, or pick a place instead.',
+      2: 'Couldn’t find your location right now. Try again outdoors, or pick a place instead.',
+      3: 'Finding your location took too long. Try again, or pick a place instead.'
+    };
+    showRouteMessage(messages[error.code] || messages[2]);
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+}
+
+function setMyLocation(position) {
+  myLocation = {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+    accuracy: position.coords.accuracy
+  };
+  showUserLocation(myLocation.latitude, myLocation.longitude, myLocation.accuracy);
+}
+
+// 走路时蓝点跟着动。路线不跟着重算：不然每走几步就要问一次后端；想更新就再点一次 📍
+function startLocationWatch() {
+  if (locationWatchId !== null || !navigator.geolocation) {
+    return;
+  }
+  locationWatchId = navigator.geolocation.watchPosition(setMyLocation, function () {
+    // 跟踪途中出错（比如进了楼里）：保留最后的位置，不打扰用户
+  }, { enableHighAccuracy: true, maximumAge: 10000 });
+}
+
+// 不再跟踪：去掉蓝点，省电，也不会在用户不知道时一直拿位置
+// 离开 Route check（tabs.js）、或者 From / To 都不是"我的位置"了（updateRoute）时调用
+function stopLocationWatch() {
+  if (locationWatchId !== null) {
+    navigator.geolocation.clearWatch(locationWatchId);
+    locationWatchId = null;
+  }
+  clearUserLocation();
+}
+
+// 回到 Route check：如果还在用"我的位置"，重新显示蓝点并继续跟踪（已经允许过，不会再弹窗）
+function resumeLocationIfUsed() {
+  if (myLocation && locationInUse()) {
+    showUserLocation(myLocation.latitude, myLocation.longitude, myLocation.accuracy);
+    startLocationWatch();
+  }
 }
 
 // ===== 常去的地方（To 下面的一排小按钮） =====
@@ -352,6 +491,11 @@ async function resolvePlaceInput(inputBox, slot, placeIndex, allowPartial) {
     return undefined;
   }
 
+  // "📍 Your location"：用户点了 Use my location
+  if (text === MY_LOCATION_LABEL) {
+    return myLocation ? myLocationPlace() : undefined;
+  }
+
   // 自己课表里的课（从候选列表里选的课名，完全一样才算）
   const myClassExact = findMyClass(text, false);
   if (myClassExact) {
@@ -393,7 +537,7 @@ async function resolvePlaceInput(inputBox, slot, placeIndex, allowPartial) {
     return myClassPartial;
   }
 
-  showRouteMessage(`Looking up "${text}"…`);
+  showRouteMessage(`Looking up "${escapeHtml(text)}"…`);
   const found = await geocodeAddress(text);
   if (!found) {
     return undefined;
@@ -424,6 +568,9 @@ async function updateRoute(placeIndex, allowPartial) {
   const fromPlace = await resolvePlaceInput(fromBox, 'from', placeIndex, allowPartial);
   const toPlace = await resolvePlaceInput(toBox, 'to', placeIndex, allowPartial);
   renderRoutePicks(); // To 空着时才显示"常去的地方"
+  if (!locationInUse()) {
+    stopLocationWatch(); // From / To 都换成别的地方了：不再跟踪位置
+  }
 
   if (requestId !== routeRequestId) {
     return; // 等待期间又有新的输入，这次的结果作废
@@ -453,8 +600,13 @@ async function updateRoute(placeIndex, allowPartial) {
     const missing = [fromBox, toBox].find(function (box, i) {
       return box.value.trim() !== '' && [fromPlace, toPlace][i] === undefined;
     });
+    if (missing && missing.value === MY_LOCATION_LABEL) {
+      // 输入框里还留着"我的位置"，但这次打开页面还没定位过（比如刷新了页面）
+      showRouteMessage('Tap “📍 Use my location” to find where you are.');
+      return;
+    }
     if (missing) {
-      showRouteMessage(`Can't find "${missing.value}". Try a dorm or building name, or a street address near campus.`);
+      showRouteMessage(`Can't find "${escapeHtml(missing.value)}". Try a dorm or building name, or a street address near campus.`);
       return;
     }
   }
@@ -479,7 +631,7 @@ async function updateRoute(placeIndex, allowPartial) {
   drawRouteLine(fromPlace, toPlace);
 
   // 打完了、算出了结果：记住这个目的地（自己的课不算，下次排在"常去的地方"最前面）
-  if (allowPartial && !toPlace.myClass) {
+  if (allowPartial && !toPlace.myClass && !toPlace.isMyLocation) {
     rememberRecentDestination(toBox.value.trim());
     renderRoutePicks();
   }
@@ -691,6 +843,10 @@ async function main() {
       to.dispatchEvent(new Event('change'));
     }
   });
+
+  // 📍 从我现在的位置出发
+  routePlaceIndex = placeIndex;
+  document.getElementById('use-location').addEventListener('click', useMyLocation);
 
   // ⇅ 交换起点和终点
   document.getElementById('swap-route').addEventListener('click', function () {

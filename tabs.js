@@ -12,6 +12,14 @@ function showTab(name) {
     document.getElementById('tab-' + tab).hidden = !selected;
     document.getElementById('tab-btn-' + tab).setAttribute('aria-selected', String(selected));
   });
+  // 我现在的位置（app.js）：只在 Route check 里跟踪；离开就停，回来再继续
+  if (typeof stopLocationWatch === 'function') {
+    if (name === 'route') {
+      resumeLocationIfUsed();
+    } else {
+      stopLocationWatch();
+    }
+  }
   // 换了标签页，从这一页的开头看
   const sidebar = document.getElementById('sidebar');
   if (isPhoneLayout()) {

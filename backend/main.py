@@ -4,6 +4,7 @@
 #   backend/.venv/bin/uvicorn backend.main:app --reload --port 8001
 
 import json
+import logging
 import os
 import urllib.error
 import urllib.request
@@ -11,6 +12,11 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+
+# 关掉 uvicorn 的访问日志：它会把每个请求的完整网址（包括起点终点的经纬度，可能是用户现在的位置）
+# 打印出来，托管平台会把这些日志存下来。我们不需要这些记录，所以不记
+# 错误日志（uvicorn.error）照常保留，出问题时还能排查
+logging.getLogger("uvicorn.access").disabled = True
 
 # 创建后端应用。title 会显示在自动生成的接口说明页面（/docs）上
 app = FastAPI(title="BU Dorm Dash API")

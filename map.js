@@ -153,7 +153,20 @@ function drawRouteLine(fromPlace, toPlace, verdict, path) {
   }).bindTooltip('End: ' + toPlace.name);
 
   // featureGroup：把线和两个点当成一个整体，一起添加、一起删除，还能一起算范围
-  routeLine = L.featureGroup([casing, line, start, end]).addTo(map);
+  // 起点或终点是"我现在的位置"：那一头已经有蓝点了，不再画白点（不然会盖住蓝点）
+  const parts = [casing, line];
+  if (!fromPlace.isMyLocation) {
+    parts.push(start);
+  }
+  if (!toPlace.isMyLocation) {
+    parts.push(end);
+  }
+  routeLine = L.featureGroup(parts).addTo(map);
+  // 蓝点永远在路线上面
+  if (userDot) {
+    userAccuracy.bringToFront();
+    userDot.bringToFront();
+  }
 
   // 路线两头的楼：框出来，标上 FROM / TO
   showRouteEnds(fromPlace, toPlace);
@@ -165,7 +178,8 @@ function drawRouteLine(fromPlace, toPlace, verdict, path) {
   }
 
   // 自动缩放，让整条线都在视野里；padding 留出边距：左右多留一些，起点、终点的标签放得下
-  map.fitBounds(routeLine.getBounds(), { padding: [90, 60] });
+  // maxZoom：很短的路不要放大到最大（地图会变模糊，也看不出周围是哪里）
+  map.fitBounds(routeLine.getBounds(), { padding: [90, 60], maxZoom: 17 });
   layoutClassLabels(); // 标签避开新的路线（地图移动结束后还会再摆一次）
   bringMapIntoView();
 }
@@ -209,6 +223,10 @@ function showRouteEnds(fromPlace, toPlace) {
 
   ends.forEach(function (end) {
     const place = end[0];
+    // 我现在的位置：地图上已经有蓝点了（showUserLocation），不用再框一圈
+    if (place.isMyLocation) {
+      return;
+    }
     const shape = buildingShapes[place.id];
     const outline = shape
       ? L.polygon(shape, ROUTE_END_STYLE)
@@ -370,6 +388,42 @@ function clearAddressMarker(slot) {
   if (addressMarkers[slot]) {
     map.removeLayer(addressMarkers[slot]);
     addressMarkers[slot] = null;
+  }
+}
+
+// ===== 我现在的位置（Route check 里点了 "📍 Use my location"） =====
+// 蓝点 + 浅蓝色圆圈：圆圈是定位精度，意思是"你大概在这一圈里"（室内可能偏差几十米）
+// 只在用户自己点了按钮以后才出现；离开 Route check 就去掉（app.js stopLocationWatch）
+
+const USER_DOT_COLOR = '#1a73e8'; // 地图软件里"我的位置"通用的蓝色，大家一看就懂
+let userDot = null;
+let userAccuracy = null;
+
+// 输入：纬度、经度、精度（米）
+function showUserLocation(lat, lng, accuracy) {
+  const position = [lat, lng];
+  if (!userDot) {
+    userAccuracy = L.circle(position, {
+      radius: accuracy, color: USER_DOT_COLOR, weight: 1, opacity: 0.4,
+      fillColor: USER_DOT_COLOR, fillOpacity: 0.12, interactive: false
+    }).addTo(map);
+    userDot = L.circleMarker(position, {
+      radius: 8, color: 'white', weight: 3, fillColor: USER_DOT_COLOR, fillOpacity: 1
+    }).bindTooltip('You are here').addTo(map);
+    return;
+  }
+  // 走动时只移动位置，不重新创建，也不移动地图（用户可能正在看别的地方）
+  userDot.setLatLng(position);
+  userAccuracy.setLatLng(position);
+  userAccuracy.setRadius(accuracy);
+}
+
+function clearUserLocation() {
+  if (userDot) {
+    map.removeLayer(userDot);
+    map.removeLayer(userAccuracy);
+    userDot = null;
+    userAccuracy = null;
   }
 }
 

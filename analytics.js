@@ -45,7 +45,7 @@ function trackEvent(name) {
 //   课表：schedule-new、schedule-switch、schedule-delete、schedule-move、compare-open
 //   相同的课：shared-start（点了 Find classes you share）、shared-open（打开了 Shared classes）
 //   看课：class-expand（列表里点开一门课）、map-building（地图上点了上课的楼）、walk-route（点了一段课间步行）、day-pick（点了星期按钮 / All week）
-//   其他：try-sample、tab-week / tab-dorm / tab-route、route-check、route-pick（点了常去的地方）、walk-from-class（点了某门课的 Walk from here）、dorm-open、dorm-ranking、feedback-click
+//   其他：try-sample、tab-week / tab-dorm / tab-route、route-check、route-pick（点了常去的地方）、use-location（用了定位，不记位置）、open-maps-google / open-maps-apple（交给导航软件）、walk-from-class（点了某门课的 Walk from here）、dorm-open、dorm-ranking、feedback-click
 
 
 // Feedback 按钮：有链接才显示
@@ -61,7 +61,7 @@ function initFeedbackLink() {
 function initEventTracking() {
   document.addEventListener('click', function (event) {
     const target = event.target.closest('#sample-button, #feedback-link, #schedule-text-button, #new-schedule-button, #friend-button, ' +
-      '[data-walk], .tabs [data-tab], [data-action]');
+      '[data-walk], .tabs [data-tab], [data-action], [data-open-maps]');
     if (!target) {
       return;
     }
@@ -72,7 +72,9 @@ function initEventTracking() {
       'delete-schedule': 'schedule-delete',
       'bulk-move': 'schedule-move'
     };
-    if (target.id === 'sample-button') {
+    if (target.dataset.openMaps) {
+      trackEvent('open-maps-' + target.dataset.openMaps); // 打开了 Google / Apple Maps；只记哪一个，不记起点终点
+    } else if (target.id === 'sample-button') {
       trackEvent('try-sample');
     } else if (target.id === 'feedback-link') {
       trackEvent('feedback-click');

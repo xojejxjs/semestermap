@@ -1761,3 +1761,47 @@ button.walk-row.selected {
 .day-class .walk-from-button {
   align-self: center;
 }
+
+/* ===== 从我现在的位置出发 + 交给导航软件（app.js） ===== */
+.location-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 6px;
+}
+
+.location-button {
+  color: var(--action);
+}
+
+.location-button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.location-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 结果卡片最下面：Open in Google Maps › / Open in Apple Maps › */
+#route-result .route-open {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+#route-result .route-open a {
+  color: var(--action);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#route-result .route-open a:hover {
+  text-decoration: underline;
+}
