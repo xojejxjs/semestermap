@@ -153,7 +153,7 @@ main {
   margin: 4px 0;
 }
 
-/* 算出了结果：白色卡片（Route check 不判断来不来得及，所以不用 🟢🟡🔴 的颜色） */
+/* 算出了结果：白色卡片（Directions 不判断来不来得及，所以不用 🟢🟡🔴 的颜色） */
 #route-result.route-done {
   background: white;
   border: 1px solid var(--line);
@@ -810,7 +810,7 @@ main {
   margin: 8px 0 0;
 }
 
-/* 每一行一段步行；左边色条和背景色和 Route check 的结果用同一套颜色 */
+/* 每一行一段步行；左边色条和背景色和 Directions 的结果用同一套颜色 */
 .walk-row {
   display: flex;
   flex-direction: column;
@@ -1663,7 +1663,7 @@ button.walk-row.selected {
   text-decoration: none;
 }
 
-/* ===== Route check：交换、常去的地方、返回（app.js / my-week.js） ===== */
+/* ===== Directions：交换、常去的地方、返回（app.js / my-week.js） ===== */
 .swap-row {
   display: flex;
   justify-content: flex-end;
@@ -1827,7 +1827,7 @@ li.walk-expanded button.walk-row.selected {
   border-radius: 0 0 8px 8px;
 }
 
-/* 分隔线在这里画（和 Route check 卡片一样：一条细线 + 两个蓝色链接） */
+/* 分隔线在这里画（和 Directions 卡片一样：一条细线 + 两个蓝色链接） */
 .walk-open .route-open {
   margin: 0;
   border-top-color: rgba(0, 0, 0, 0.12); /* 卡片有底色（红 / 黄 / 绿），浅灰线看不清，用半透明黑 */

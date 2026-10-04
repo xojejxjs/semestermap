@@ -233,7 +233,7 @@ function judgeRoute(route, gapMinutes) {
 }
 
 // 把结果显示到 #route-result
-// Route check 只回答"走过去要多久"，不判断来不来得及（那是 My week 的事，课间分钟数来自课表）
+// Directions 只回答"走过去要多久"，不判断来不来得及（那是 My week 的事，课间分钟数来自课表）
 // 所以卡片是中性的白色：🟢🟡🔴 只用来表示"来不来得及"
 // 输入：measureRoute 的结果 { meters, minutes, isEstimate }、起点、终点
 function showRouteResult(result, fromPlace, toPlace) {
@@ -376,7 +376,7 @@ function startLocationWatch() {
 }
 
 // 不再跟踪：去掉蓝点，省电，也不会在用户不知道时一直拿位置
-// 离开 Route check（tabs.js）、或者 From / To 都不是"我的位置"了（updateRoute）时调用
+// 离开 Directions（tabs.js）、或者 From / To 都不是"我的位置"了（updateRoute）时调用
 function stopLocationWatch() {
   if (locationWatchId !== null) {
     navigator.geolocation.clearWatch(locationWatchId);
@@ -385,7 +385,7 @@ function stopLocationWatch() {
   clearUserLocation();
 }
 
-// 回到 Route check：如果还在用"我的位置"，重新显示蓝点并继续跟踪（已经允许过，不会再弹窗）
+// 回到 Directions：如果还在用"我的位置"，重新显示蓝点并继续跟踪（已经允许过，不会再弹窗）
 function resumeLocationIfUsed() {
   if (myLocation && locationInUse()) {
     showUserLocation(myLocation.latitude, myLocation.longitude, myLocation.accuracy);
@@ -828,7 +828,7 @@ async function main() {
 
   // 我的课：上传截图、粘贴文字、确认 / 编辑（全部在 my-classes.js 里）
   initMyClasses(placeIndex);
-  // 课间步行分析：点一行 → 在 Route check 里显示这段路（my-week.js）
+  // 课间步行分析：点一行 → 在 Directions 里显示这段路（my-week.js）
   initClassWalks();
 
   ['from-input', 'to-input'].forEach(function (id) {

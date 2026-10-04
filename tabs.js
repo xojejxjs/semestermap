@@ -1,4 +1,4 @@
-// tabs.js：左边的三个标签页（My week / Find a dorm / Route check）
+// tabs.js：左边的三个标签页（My week / Find a dorm / Directions；Directions 在代码里叫 route）
 //
 // 一次只显示一个标签页，左边就不会一长串什么都有
 
@@ -12,7 +12,7 @@ function showTab(name) {
     document.getElementById('tab-' + tab).hidden = !selected;
     document.getElementById('tab-btn-' + tab).setAttribute('aria-selected', String(selected));
   });
-  // 我现在的位置（app.js）：只在 Route check 里跟踪；离开就停，回来再继续
+  // 我现在的位置（app.js）：只在 Directions 里跟踪；离开就停，回来再继续
   if (typeof stopLocationWatch === 'function') {
     if (name === 'route') {
       resumeLocationIfUsed();

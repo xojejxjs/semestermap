@@ -2,7 +2,7 @@
 //
 // 导入课表以后，自动找出每天"上完一节、接着上下一节"的两节课，
 // 算出课间有几分钟、走过去要几分钟，判断来不来得及（🟢 / 🟡 / 🔴）
-// 用户不用自己去 Route check 里一对一对地选
+// 用户不用自己去 Directions 里一对一对地选
 
 const LONG_BREAK_MINUTES = 60; // 课间超过这么久，就不算"赶课"，收进折叠区
 
@@ -81,7 +81,7 @@ function describeWalk(prev, next, gap, day) {
   } else if (gap > LONG_BREAK_MINUTES) {
     walk.kind = 'long';   // 课间很长，不用赶
   } else {
-    // 和 Route check 用同一套规则：先查表，查不到就直线估算（isEstimate）
+    // 和 Directions 用同一套规则：先查表，查不到就直线估算（isEstimate）
     walk.route = judgeRoute(measureRoute(prev.place, next.place), gap);
   }
   return walk;
@@ -243,7 +243,7 @@ function longBreakText(walk) {
 
 // ===== 怎么走到一门课（从宿舍、我现在的位置……） =====
 
-// Route check 下面的 "← Back to …" 要回到哪里：null 是不显示；{ day: 'Wed' } 或 { day: null }（All week）
+// Directions 下面的 "← Back to …" 要回到哪里：null 是不显示；{ day: 'Wed' } 或 { day: null }（All week）
 let routeBack = null;
 
 // 输入：null，或者 { day }
@@ -258,7 +258,7 @@ function setRouteBack(target) {
   button.hidden = false;
 }
 
-// 点了某门课的 "Directions ›"：切到 Route check，To 填好这门课，From 让用户选
+// 点了某门课的 "Directions ›"：切到 Directions，To 填好这门课，From 让用户选
 // 课一般是终点（"我能不能准时到课"），很少是起点；配合 📍 就是：点课 → 点 📍 → Open in Google Maps
 // 用户不用记课名、不用再打一遍
 // 输入：那门课、从哪一天的时间线点的（null 表示从 My classes 列表点的）
@@ -423,13 +423,13 @@ function renderWalkRow(walk) {
   if (walk.kind === 'clash') {
     return `<li><div class="walk-row walk-${color}">${content}</div></li>`;
   }
-  // 其他的做成按钮：点了在 Route check 里显示这段路（用 button，键盘 Tab + 回车也能用）
+  // 其他的做成按钮：点了在 Directions 里显示这段路（用 button，键盘 Tab + 回车也能用）
   const index = shownWalks.indexOf(walk);
   return `<li><button type="button" class="walk-row walk-${color}" data-walk="${index}">${content}
       <span class="walk-show">Show route on map ›</span></button></li>`;
 }
 
-// 点了某一行：Route check 里填好这两节课和课间分钟数，地图上画出路线，然后滚到结果
+// 点了某一行：Directions 里填好这两节课和课间分钟数，地图上画出路线，然后滚到结果
 function handleWalkClick(event) {
   // 星期按钮、"← Back to all week"：data-day 是空的就是 All week
   const dayButton = event.target.closest('button[data-day]');
@@ -454,7 +454,7 @@ function handleWalkClick(event) {
   if (!walk) {
     return;
   }
-  // 在地图上画出这段路（Route check 也会填好，切过去就能看到详细结果）
+  // 在地图上画出这段路（Directions 也会填好，切过去就能看到详细结果）
   // 留在 My week 里不跳走：这一行本身已经写了结论；地图在旁边（手机上在上面）
   fillRouteCheck(walk.from, walk.to);
   // 上一段选中的：取消选中，收起它下面的 "Open in Google Maps"
@@ -480,7 +480,7 @@ function showOpenInMaps(row, walk) {
   const color = Array.from(row.classList).find(function (name) { return name.indexOf('walk-') === 0 && name !== 'walk-row'; });
   const box = document.createElement('div');
   box.className = 'walk-row walk-open ' + (color || '');
-  box.innerHTML = renderOpenInMaps(walk.from.place, walk.to.place); // app.js，和 Route check 卡片底部一模一样
+  box.innerHTML = renderOpenInMaps(walk.from.place, walk.to.place); // app.js，和 Directions 结果卡片底部一模一样
   row.after(box);
   row.parentElement.classList.add('walk-expanded');
 }

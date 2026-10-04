@@ -51,7 +51,7 @@
   <!-- Leaflet 的样式文件，必须引入，否则地图显示会错乱 -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <link rel="stylesheet" href="style.css?v=2026-10-04d" />
+  <link rel="stylesheet" href="style.css?v=2026-10-04e" />
 </head>
 <body>
   <noscript>
@@ -75,7 +75,7 @@
       <nav class="tabs" role="tablist" aria-label="Sections">
         <button type="button" role="tab" id="tab-btn-week" data-tab="week" aria-controls="tab-week" aria-selected="true">My week</button>
         <button type="button" role="tab" id="tab-btn-dorm" data-tab="dorm" aria-controls="tab-dorm" aria-selected="false">Find a dorm</button>
-        <button type="button" role="tab" id="tab-btn-route" data-tab="route" aria-controls="tab-route" aria-selected="false">Route check</button>
+        <button type="button" role="tab" id="tab-btn-route" data-tab="route" aria-controls="tab-route" aria-selected="false">Directions</button>
       </nav>
 
       <!-- 标签页 1：My week —— 先给结论（课间步行），再是我的课，最后是添加课表 -->
@@ -188,10 +188,10 @@
         </section>
       </div>
 
-      <!-- 标签页 3：Route check —— 任意两个地点之间走多久、来不来得及 -->
+      <!-- 标签页 3：Directions —— 任意两个地点之间怎么走、走多久，可以交给 Google / Apple Maps 导航（代码里还叫 route） -->
       <div id="tab-route" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-route" hidden>
         <section id="route-panel">
-          <h2>Route check</h2>
+          <h2>Directions</h2>
 
           <!-- 两个输入框共用一个候选列表 place-options：可以点开选，也可以直接打字 -->
           <!-- 只回答"走过去要多久"；"来不来得及"由 My week 根据课表判断（课间分钟数来自课表，不用用户填） -->
@@ -259,21 +259,21 @@
 
   <!-- 我们自己的 JS，顺序很重要：被别人用的文件要先加载 -->
   <!-- ?v=版本号：每次更新网站时改这个号码，浏览器就会下载新文件，而不是继续用缓存里的旧文件 -->
-  <script>const APP_VERSION = '2026-10-04d';</script>
-  <script src="distance.js?v=2026-10-04d"></script>
-  <script src="geocode.js?v=2026-10-04d"></script>
-  <script src="route-api.js?v=2026-10-04d"></script>
-  <script src="schedule.js?v=2026-10-04d"></script>
-  <script src="schedule-import.js?v=2026-10-04d"></script>
-  <script src="course-guess.js?v=2026-10-04d"></script>
-  <script src="my-classes.js?v=2026-10-04d"></script>
-  <script src="my-week.js?v=2026-10-04d"></script>
-  <script src="schedules.js?v=2026-10-04d"></script>
-  <script src="compare.js?v=2026-10-04d"></script>
-  <script src="map.js?v=2026-10-04d"></script>
-  <script src="tabs.js?v=2026-10-04d"></script>
-  <script src="app.js?v=2026-10-04d"></script>
-  <script src="analytics.js?v=2026-10-04d"></script>
+  <script>const APP_VERSION = '2026-10-04e';</script>
+  <script src="distance.js?v=2026-10-04e"></script>
+  <script src="geocode.js?v=2026-10-04e"></script>
+  <script src="route-api.js?v=2026-10-04e"></script>
+  <script src="schedule.js?v=2026-10-04e"></script>
+  <script src="schedule-import.js?v=2026-10-04e"></script>
+  <script src="course-guess.js?v=2026-10-04e"></script>
+  <script src="my-classes.js?v=2026-10-04e"></script>
+  <script src="my-week.js?v=2026-10-04e"></script>
+  <script src="schedules.js?v=2026-10-04e"></script>
+  <script src="compare.js?v=2026-10-04e"></script>
+  <script src="map.js?v=2026-10-04e"></script>
+  <script src="tabs.js?v=2026-10-04e"></script>
+  <script src="app.js?v=2026-10-04e"></script>
+  <script src="analytics.js?v=2026-10-04e"></script>
 
   <!-- 访问统计（GoatCounter）：不用 cookie；只在线上网站统计，本地测试不算 -->
   <script data-goatcounter="https://xojejxjs.goatcounter.com/count"

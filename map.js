@@ -28,8 +28,8 @@ const visibleTypes = new Set(['dorm']);
 
 // 当前"被选中"的地点 id。被选中的地点不管类别有没有勾选，都一定显示
 const pinnedIds = {
-  from: null,      // Route check 的起点
-  to: null,        // Route check 的终点
+  from: null,      // Directions 标签页的起点
+  to: null,        // Directions 标签页的终点
   rank: null,      // 排名选的那栋楼
   highlight: null  // 当前框起来的地点
 };
@@ -391,9 +391,9 @@ function clearAddressMarker(slot) {
   }
 }
 
-// ===== 我现在的位置（Route check 里点了 "📍 Use my location"） =====
+// ===== 我现在的位置（Directions 里点了 "📍 Use my location"） =====
 // 蓝点 + 浅蓝色圆圈：圆圈是定位精度，意思是"你大概在这一圈里"（室内可能偏差几十米）
-// 只在用户自己点了按钮以后才出现；离开 Route check 就去掉（app.js stopLocationWatch）
+// 只在用户自己点了按钮以后才出现；离开 Directions 就去掉（app.js stopLocationWatch）
 
 const USER_DOT_COLOR = '#1a73e8'; // 地图软件里"我的位置"通用的蓝色，大家一看就懂
 let userDot = null;

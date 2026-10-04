@@ -1,7 +1,7 @@
 // schedules.js：多份课表（比如自己的课表和 Plan B，或者室友的课表）
 //
 // 做法：myClasses.items 永远只放"当前这一份"课表的课，其他几份存在 myClasses.schedules 里
-// 切换时两边交换一下。列表、地图、课间步行、Route check 读的都是 myClasses.items，
+// 切换时两边交换一下。列表、地图、课间步行、Directions 读的都是 myClasses.items，
 // 所以它们不用改，自动"只看当前这一份"
 //
 // 只有一份课表时，切换栏完全不显示：大多数人根本看不到这个功能，界面保持简单

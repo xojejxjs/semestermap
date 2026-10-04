@@ -9,7 +9,7 @@
 // 原则：只有"读到的"可以直接上地图；"猜的"一定要用户确认。任何操作都能 Edit、Undo、Restore
 
 const myClasses = {
-  items: [],        // 当前这一份课表里的所有课（页面上的列表、地图、课间步行、Route check 都只看它）
+  items: [],        // 当前这一份课表里的所有课（页面上的列表、地图、课间步行、Directions 都只看它）
   schedules: [{ id: 1, name: 'My schedule', items: [] }], // 所有课表；当前那一份的课以 items 为准（schedules.js）
   activeId: 1,      // 当前是哪一份课表
   placeIndex: null, // 地点搜索索引（app.js 建好后传进来）
@@ -55,7 +55,7 @@ function classCountBucket(n) {
   return n <= 6 ? '4-6' : '7plus';
 }
 
-// ===== 在 Route check 里用"我的课"当起点 / 终点 =====
+// ===== 在 Directions 里用"我的课"当起点 / 终点 =====
 
 // 一门课在 From / To 候选列表里显示的名字，比如 "Calculus 1 (CASMA 123 DIS)"
 function myClassLabel(c) {
@@ -245,7 +245,7 @@ function activeSchedule() {
 //
 // 我们的楼宇数据还不完整。用户输入一个不认识的地址（比如 "3 Cummington Mall"）时，
 // 不能直接说"找不到"：先去地图服务（OpenStreetMap）查，查到了就变成一个新地点，
-// 加进搜索索引（Route check 也能用），并存在这个浏览器里，下次直接认得
+// 加进搜索索引（Directions 也能用），并存在这个浏览器里，下次直接认得
 
 const CUSTOM_PLACES_KEY = 'bu-dorm-dash:custom-places';
 const SAME_BUILDING_METERS = 40; // 查到的位置离已有的楼这么近，就当作是那栋楼
@@ -379,13 +379,13 @@ function addSampleClasses() {
   addParsedSchedule(result);
 }
 
-// 点 "Try a sample schedule"：导入示例课，然后在 Route check 里填好"课间来不及"的那两节课
+// 点 "Try a sample schedule"：导入示例课，然后在 Directions 里填好"课间来不及"的那两节课
 function loadSampleSchedule() {
   addSampleClasses();
   fillSampleRoute();
 }
 
-// 在 Route check 里填好示例中"课间来不及"的两节课：周三 Macro（PRB）9:55 下课 → Experience Management（SHA）10:10 上课
+// 在 Directions 里填好示例中"课间来不及"的两节课：周三 Macro（PRB）9:55 下课 → Experience Management（SHA）10:10 上课
 function fillSampleRoute() {
   const macro = myClasses.items.find(function (c) { return c.sample && c.course === 'CASEC 102'; });
   const sha = myClasses.items.find(function (c) { return c.sample && c.course === 'SHAHF 150'; });
@@ -394,9 +394,9 @@ function fillSampleRoute() {
   }
 }
 
-// 在 Route check 里填好"从哪门课 → 到哪门课"，然后算路线、在地图上画线
+// 在 Directions 里填好"从哪门课 → 到哪门课"，然后算路线、在地图上画线
 // 示例按钮和 "Your walks between classes" 的每一行（my-week.js）共用
-// 来不来得及写在 walk 那一行上（课间分钟数来自课表）；Route check 只显示要走多久
+// 来不来得及写在 walk 那一行上（课间分钟数来自课表）；Directions 只显示要走多久
 // 输入：前一节课、后一节课
 function fillRouteCheck(fromClass, toClass) {
   const from = document.getElementById('from-input');
@@ -1092,7 +1092,7 @@ function handleListClick(event) {
     return;
   }
 
-  // 怎么走到这门课：带到 Route check，To 已经填好（my-week.js）
+  // 怎么走到这门课：带到 Directions，To 已经填好（my-week.js）
   if (action === 'directions') {
     directionsToClass(item, null);
     return;

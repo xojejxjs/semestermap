@@ -110,7 +110,7 @@ function initEventTracking() {
     // 查路线：起点、终点都填好了才算一次
     if ((id === 'from-input' || id === 'to-input') &&
         document.getElementById('from-input').value && document.getElementById('to-input').value) {
-      trackEvent('route-check'); // 用户自己在 Route check 里查的（点"课间步行"填好的路线记成 walk-route）
+      trackEvent('route-check'); // 用户自己在 Directions 里查的（事件名还叫 route-check，和以前的数据接得上）（点"课间步行"填好的路线记成 walk-route）
     }
   });
 
