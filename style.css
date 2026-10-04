@@ -1883,6 +1883,8 @@ li.walk-expanded button.walk-row.selected {
 }
 
 /* ===== 课间规划（gap-planner.js） ===== */
+/* 设计：结论放最上面一句话；下面像行程单（左边时间、右边地方），一条细竖线连起来，没有框里套框；
+   不常用的操作（停留时间、换位置、删除）点了地方才出现 */
 .plan-break-row {
   margin: 8px 0 0;
   padding-top: 8px;
@@ -1902,7 +1904,7 @@ li.walk-expanded button.walk-row.selected {
 
 .break-planner {
   margin-top: 8px;
-  padding: 12px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
@@ -1913,53 +1915,98 @@ li.walk-expanded button.walk-row.selected {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
 }
 
-.bp-icon {
+.bp-title {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bp-close {
   min-width: 32px;
-  min-height: 32px;   /* 手机上手指容易点到 */
+  min-height: 32px;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: white;
-  font: inherit;
-  color: var(--ink);
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: var(--muted);
   cursor: pointer;
 }
 
-.bp-icon:disabled {
-  color: #c8ccd2;
-  cursor: default;
+/* 最重要的一句：能不能准时到 */
+.bp-headline {
+  margin: 2px 0 2px;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1.35;
 }
 
+.bp-headline.bp-green  { color: var(--ok); }
+.bp-headline.bp-yellow { color: #8a6100; }
+.bp-headline.bp-red    { color: var(--late); }
+
+.bp-sub {
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.bp-best {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+/* 行程单：左边一列时间，右边内容；时间列右边一条细竖线把整段课间连起来 */
 .bp-steps {
   list-style: none;
   margin: 10px 0 0;
   padding: 0;
 }
 
-.bp-class {
-  padding: 4px 0;
+.bp-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: start;
 }
 
-.bp-leg {
-  padding: 2px 0 2px 24px;
+.bp-time {
+  padding: 6px 10px 6px 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bp-what {
+  min-width: 0;
+  padding: 5px 0 5px 12px;
+  border-left: 2px solid var(--line);
+}
+
+.bp-leg .bp-what {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  font-size: 12px;
   color: var(--muted);
 }
 
-.bp-stop {
-  margin: 2px 0;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #f9fafb;
+.bp-class .bp-what {
+  color: var(--ink);
 }
 
-.bp-stop-head {
+/* 一个地方：整行可以点，点了展开编辑区 */
+.bp-stop-toggle {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .bp-name {
@@ -1968,16 +2015,14 @@ li.walk-expanded button.walk-row.selected {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
 }
 
-.bp-tools {
-  display: flex;
-  gap: 4px;
+.bp-stay-summary {
   flex: none;
-}
-
-.bp-times {
-  margin: 6px 0 4px 24px;
+  font-size: 12px;
+  color: var(--action);
+  white-space: nowrap;
 }
 
 .bp-late {
@@ -1985,28 +2030,75 @@ li.walk-expanded button.walk-row.selected {
   font-weight: bold;
 }
 
-.bp-stay {
-  margin-left: 24px;
+.bp-address {
+  margin-top: 1px;
+  font-size: 12px;
   color: var(--muted);
 }
 
-.bp-stay input {
-  width: 56px;
-  padding: 3px 6px;
-  font: inherit;
+.bp-open .bp-what {
+  border-left-color: var(--mine);
 }
 
-.bp-verdict {
-  margin: 10px 0 4px;
+.bp-edit {
+  margin-top: 8px;
+}
+
+.bp-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.bp-edit-label {
+  color: var(--muted);
+}
+
+.bp-step {
+  width: 32px;
+  height: 32px;   /* 手机上手指容易点到 */
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: white;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--action);
+  cursor: pointer;
+}
+
+.bp-step-value {
+  min-width: 52px;
   font-weight: bold;
+  text-align: center;
 }
 
-.bp-verdict.bp-red    { color: var(--late); }
-.bp-verdict.bp-yellow { color: #8a6100; }
-.bp-verdict.bp-green  { color: var(--ok); }
+.bp-edit-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+}
 
-.bp-best {
-  margin: 4px 0;
+.bp-edit-links .link-button {
+  color: var(--action);
+  text-decoration: none;
+}
+
+.bp-edit-links .bp-remove {
+  color: var(--late);
+}
+
+/* "＋ Add a stop"：平时只有一行，点了才展开 */
+.bp-add-toggle {
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: bold;
+  color: var(--action);
+  cursor: pointer;
 }
 
 .bp-add {
@@ -2018,6 +2110,13 @@ li.walk-expanded button.walk-row.selected {
 .bp-add input {
   flex: 1;
   min-width: 0;
+}
+
+.bp-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 /* 地图上课间规划的每一站：深蓝圆圈 + 白色数字 */
@@ -2033,17 +2132,4 @@ li.walk-expanded button.walk-row.selected {
   line-height: 22px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* 地图上搜到的地方（不在我们的数据里）：名字下面写地址，看得出是哪一家 */
-.bp-address {
-  margin: 2px 0 0 24px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* #sidebar input 默认占满一整行；停留时间的小输入框要和 "Stay … min" 排在同一行 */
-#sidebar .bp-stay input {
-  display: inline-block;
-  width: 64px;
 }

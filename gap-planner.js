@@ -162,15 +162,79 @@ function bestBreakOrder(walk, stops) {
 
 // ===== 显示 =====
 
-function classStopLine(c, text) {
-  return `<li class="bp-class"><strong>${escapeHtml(classWhere(c))}</strong> · ${escapeHtml(text)}</li>`;
+// 显示用的名字：去掉后面括号里的楼代码（"Mugar Memorial Library (MUG)" → "Mugar Memorial Library"），读起来短一些
+function stopDisplayName(stop) {
+  return String(stop.name || '').replace(/\s*\([A-Z&]{2,5}\)$/, '');
 }
 
-function legLine(leg) {
-  if (leg.minutes === 0) {
-    return '<li class="bp-leg">↓ same building</li>';
+// 顶上一句人话：能不能准时到、最晚几点要走（这是用户最想知道的，所以放第一行）
+function renderBreakHeadline(walk, stops, plan) {
+  const where = escapeHtml(classWhere(walk.to));
+  if (stops.length === 0) {
+    return `<p class="bp-headline">${breakFreeMinutes(walk)} free min before ${where}</p>` +
+      '<p class="hint bp-sub">Add the places you want to go: lunch, the library, your dorm, any shop. ' +
+      'You’ll see when to leave each one.</p>';
   }
-  return `<li class="bp-leg">↓ ${leg.minutes} min walk${leg.isEstimate ? ' (estimate)' : ''}</li>`;
+  const last = stops.length - 1;
+  const leaveLast = `Leave ${escapeHtml(stopDisplayName(stops[last]))} by ${formatClock(plan.stops[last].leaveBy)} at the latest`;
+  if (plan.verdict === 'red') {
+    return `<p class="bp-headline bp-red">🔴 You’d be ${-plan.spare} min late to ${where}</p>` +
+      `<p class="bp-sub">Remove a stop${stops.length > 1 ? ' or try a different order' : ''}.</p>`;
+  }
+  if (plan.verdict === 'yellow') {
+    return `<p class="bp-headline bp-yellow">🟡 Tight: only ${plan.spare} min to spare at ${where}</p>` +
+      `<p class="bp-sub">${leaveLast}</p>`;
+  }
+  return `<p class="bp-headline bp-green">🟢 You’ll make ${where} with ${plan.spare} min to spare</p>` +
+    `<p class="bp-sub">${leaveLast}</p>`;
+}
+
+// 行程单的一行：左边时间，右边内容
+function breakRow(time, content, extraClass) {
+  return `<li class="bp-row ${extraClass || ''}"><span class="bp-time">${time ? escapeHtml(formatClock(time)) : ''}</span>` +
+    `<div class="bp-what">${content}</div></li>`;
+}
+
+function breakLegRow(leg) {
+  const text = leg.minutes === 0 ? 'same building' : `${leg.minutes} min walk${leg.isEstimate ? ' (estimate)' : ''}`;
+  return `<li class="bp-row bp-leg"><span class="bp-time"></span><div class="bp-what">${text}</div></li>`;
+}
+
+// 一个地方：平时只有名字、地址、停留时间；点了才展开编辑（停留时间 − / +、换位置、删除）
+function breakStopRow(stop, t, k, count) {
+  const expanded = openBreak.expanded === k;
+  let stay;
+  if (t.maxStay < 0) {
+    stay = `<span class="bp-late">${-t.maxStay} min short</span>`;
+  } else if (t.stay > 0) {
+    stay = `${t.stay} min`;
+  } else {
+    stay = `up to ${formatBreak(t.maxStay)}`;
+  }
+  let html = `<button type="button" class="bp-stop-toggle" data-bp="toggle" data-i="${k}" aria-expanded="${expanded}">` +
+    `<span class="day-stop">${stopNumber(k + 1)}</span>` +
+    `<strong class="bp-name">${escapeHtml(stopDisplayName(stop))}</strong>` +
+    `<span class="bp-stay-summary">${stay} ${expanded ? '⌃' : '›'}</span></button>`;
+  if (!stop.placeId) {
+    html += `<div class="bp-address">${escapeHtml(stop.label)}</div>`;
+  }
+  if (expanded) {
+    html += `<div class="bp-edit">
+      <div class="bp-stepper">
+        <span class="bp-edit-label">Stay</span>
+        <button type="button" class="bp-step" data-bp="less" data-i="${k}" aria-label="5 minutes less">−</button>
+        <span class="bp-step-value">${t.stay > 0 ? t.stay + ' min' : 'not set'}</span>
+        <button type="button" class="bp-step" data-bp="more" data-i="${k}" aria-label="5 minutes more">+</button>
+        <span class="hint">leave by ${formatClock(t.leaveBy)}${t.maxStay >= 0 ? ' · up to ' + formatBreak(t.maxStay) : ''}</span>
+      </div>
+      <div class="bp-edit-links">
+        ${k > 0 ? `<button type="button" class="link-button" data-bp="up" data-i="${k}">Move up</button>` : ''}
+        ${k < count - 1 ? `<button type="button" class="link-button" data-bp="down" data-i="${k}">Move down</button>` : ''}
+        <button type="button" class="link-button bp-remove" data-bp="remove" data-i="${k}">Remove</button>
+      </div>
+    </div>`;
+  }
+  return breakRow(t.arrive, html, 'bp-stop' + (expanded ? ' bp-open' : ''));
 }
 
 function renderBreakPlanner() {
@@ -180,70 +244,40 @@ function renderBreakPlanner() {
   const walk = openBreak.walk;
   const stops = breakStops(walk);
   const plan = computeBreak(walk, stops);
-  const free = breakFreeMinutes(walk);
 
-  let html = `<div class="bp-head"><strong>Plan your break · ${escapeHtml(walk.days.join(', '))}</strong>` +
-    '<button type="button" class="bp-icon" data-bp="close" aria-label="Close">✕</button></div>';
+  let html = `<div class="bp-head"><span class="bp-title">Plan your break · ${escapeHtml(walk.days.join(', '))}</span>` +
+    '<button type="button" class="bp-close" data-bp="close" aria-label="Close">✕</button></div>';
+  html += renderBreakHeadline(walk, stops, plan);
 
-  if (stops.length === 0) {
-    html += `<p class="hint">${free} free min between these classes. Add the places you want to go: lunch, the library, your dorm… ` +
-      'You’ll see when to leave each one and how long you can stay.</p>';
+  const better = bestBreakOrder(walk, stops);
+  if (better) {
+    html += `<p class="bp-best">💡 A different order saves ${better.saves} min. ` +
+      '<button type="button" class="link-button" data-bp="best">Use it</button></p>';
   }
 
+  // 行程单：下课 → ① → ② → 上课
   html += '<ol class="bp-steps">';
-  html += classStopLine(walk.from, `class ends ${formatClock(walk.from.end)}`);
+  html += breakRow(walk.from.end, `<strong>${escapeHtml(classWhere(walk.from))}</strong> · class ends`, 'bp-class');
   stops.forEach(function (stop, k) {
-    const t = plan.stops[k];
-    html += legLine(plan.legs[k]);
-    const times = t.maxStay < 0
-      ? `<span class="bp-late">No time for this stop: ${-t.maxStay} min short</span>`
-      : `Arrive ${formatClock(t.arrive)} · leave by ${formatClock(t.leaveBy)} · up to ${formatBreak(t.maxStay)}`;
-    html += `<li class="bp-stop">
-      <div class="bp-stop-head">
-        <span class="day-stop">${stopNumber(k + 1)}</span>
-        <strong class="bp-name" title="${escapeAttr(stop.label || stop.name)}">${escapeHtml(stop.name)}</strong>
-        <span class="bp-tools">
-          <button type="button" class="bp-icon" data-bp="up" data-i="${k}" aria-label="Move up" ${k === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" class="bp-icon" data-bp="down" data-i="${k}" aria-label="Move down" ${k === stops.length - 1 ? 'disabled' : ''}>↓</button>
-          <button type="button" class="bp-icon" data-bp="remove" data-i="${k}" aria-label="Remove">✕</button>
-        </span>
-      </div>
-      ${stop.placeId ? '' : `<div class="bp-address">${escapeHtml(stop.label)}</div>`}
-      <div class="bp-times">${times}</div>
-      <label class="bp-stay">Stay <input type="number" min="0" max="600" inputmode="numeric" data-bp-stay="${k}" value="${stop.stay > 0 ? stop.stay : ''}" placeholder="–"> min</label>
-    </li>`;
+    html += breakLegRow(plan.legs[k]);
+    html += breakStopRow(stop, plan.stops[k], k, stops.length);
   });
-  html += legLine(plan.legs[plan.legs.length - 1]);
-  html += classStopLine(walk.to, `class starts ${formatClock(walk.to.start)} (be there by ${formatClock(walk.to.start - BUFFER_MINUTES)})`);
+  html += breakLegRow(plan.legs[plan.legs.length - 1]);
+  const arrive = walk.from.end + plan.walking + sum(plan.stops.map(function (t) { return t.stay; }));
+  html += breakRow(arrive, `<strong>${escapeHtml(classWhere(walk.to))}</strong> · class at ${formatClock(walk.to.start)}`, 'bp-class');
   html += '</ol>';
 
-  // 结论：和 🟢🟡🔴 同一套规则
-  if (stops.length > 0) {
-    const stayed = sum(plan.stops.map(function (t) { return t.stay; }));
-    let verdict;
-    if (plan.verdict === 'red') {
-      verdict = `🔴 You’d be ${-plan.spare} min late. Remove a stop${stops.length > 1 ? ' or try a different order' : ''}.`;
-    } else if (plan.verdict === 'yellow') {
-      verdict = `🟡 Tight: only ${plan.spare} min to spare at your next class.`;
-    } else {
-      const left = plan.spare - BUFFER_MINUTES;
-      verdict = `🟢 Fits · ${plan.walking} min walking · ${left} free min ${stayed > 0 ? 'left' : 'at your stops'}`;
-    }
-    html += `<p class="bp-verdict bp-${plan.verdict}">${verdict}</p>`;
-    const better = bestBreakOrder(walk, stops);
-    if (better) {
-      html += `<p class="bp-best">💡 A different order saves ${better.saves} min of walking. ` +
-        '<button type="button" class="link-button" data-bp="best">Use best order</button></p>';
-    }
+  // 加一个地方：平时只有一行 "＋ Add a stop"，点了才展开；还没有地方时直接展开
+  if (openBreak.adding || stops.length === 0) {
+    html += `<form class="bp-add" data-bp-form>
+        <input type="search" list="place-options" placeholder="A place, shop or address" aria-label="Add a stop" data-bp-input>
+        <button type="submit" class="small-button">Add</button>
+      </form>`;
+    html += renderBreakPicks(stops);
+    html += '<p class="hint bp-message" data-bp-message></p>';
+  } else {
+    html += '<button type="button" class="bp-add-toggle" data-bp="adding">＋ Add a stop</button>';
   }
-
-  // 加一个地方：我们的地点、自己的课，或者任何能在地图上找到的地方（店名、地址）
-  html += `<form class="bp-add" data-bp-form>
-      <input type="search" list="place-options" placeholder="Add a stop: a place, shop or address" aria-label="Add a stop" data-bp-input>
-      <button type="submit" class="small-button">Add</button>
-    </form>`;
-  html += renderBreakPicks();
-  html += '<p class="hint bp-message" data-bp-message></p>';
 
   if (stops.length > 0) {
     html += renderBreakMapsLink(plan.points);
@@ -251,28 +285,28 @@ function renderBreakPlanner() {
   openBreak.box.innerHTML = html;
 }
 
-// 快捷地点：和 Directions 一样的 Recent + Popular（app.js）
-function renderBreakPicks() {
-  const recent = loadRecentDestinations();
-  const popular = routePopular.filter(function (p) {
-    return !recent.some(function (r) { return r.toLowerCase() === p.value.toLowerCase(); });
-  });
-  const chips = function (items) {
-    return items.map(function (item) {
-      return `<button type="button" class="pick-chip" data-bp-pick="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
-    }).join('');
+// 快捷地点：最近用过的在前，然后是大家常去的；合成一行，最多 4 个；已经在规划里的不再出现
+function renderBreakPicks(stops) {
+  const added = stops.map(function (s) { return (s.label || '').toLowerCase(); })
+    .concat(stops.map(function (s) { return (s.name || '').toLowerCase(); }));
+  const items = [];
+  const push = function (label, value) {
+    const v = value.toLowerCase();
+    if (items.length < 4 && added.indexOf(v) === -1 && !items.some(function (x) { return x.value.toLowerCase() === v; })) {
+      items.push({ label: label, value: value });
+    }
   };
-  let html = '';
-  if (recent.length > 0) {
-    html += `<div class="pick-row"><span class="pick-label">Recent</span>${chips(recent.map(function (r) {
-      const known = routePopular.find(function (p) { return p.value.toLowerCase() === r.toLowerCase(); });
-      return { label: known ? known.label : r, value: r };
-    }))}</div>`;
+  loadRecentDestinations().forEach(function (r) {
+    const known = routePopular.find(function (p) { return p.value.toLowerCase() === r.toLowerCase(); });
+    push(known ? known.label : r, r);
+  });
+  routePopular.forEach(function (p) { push(p.label, p.value); });
+  if (items.length === 0) {
+    return '';
   }
-  if (popular.length > 0) {
-    html += `<div class="pick-row"><span class="pick-label">Popular</span>${chips(popular)}</div>`;
-  }
-  return html;
+  return '<div class="bp-picks">' + items.map(function (item) {
+    return `<button type="button" class="pick-chip" data-bp-pick="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
+  }).join('') + '</div>';
 }
 
 // Google Maps 支持中途站（waypoints）：一个链接就是 下课的楼 → ① → ② → 上课的楼
@@ -344,7 +378,8 @@ function openBreakPlanner(walk, li) {
   const box = document.createElement('div');
   box.className = 'break-planner';
   li.appendChild(box);
-  openBreak = { walk: walk, box: box };
+  // expanded：哪个地方展开了编辑区；adding："Add a stop" 有没有展开
+  openBreak = { walk: walk, box: box, expanded: null, adding: false };
   logEvent('break-plan-open');
   renderBreakPlanner();
   drawBreakOnMap();
@@ -422,16 +457,13 @@ async function addBreakStop(text) {
   }
   stop.stay = null;
   breakStops(walk).push(stop);
+  openBreak.adding = false; // 加好了：收起输入框，页面回到干净的行程单
   logEvent('break-stop-add');
   // 下次在 Recent 里一点就有（app.js）；是我们自己的地点就存正式名字，和 Popular 里的对得上，不会出现两次
   if (!findMyClass(text, false)) {
-    rememberRecentDestination(stop.placeId ? stop.label : text);
+    rememberRecentDestination(stop.placeId ? stop.label : stop.name); // 存找到的正式名字（"Target"），不是用户打的 "target"
   }
   breakStopsChanged();
-  const input = openBreak.box.querySelector('[data-bp-input]');
-  if (input && !isPhoneLayout()) {
-    input.focus(); // 电脑上可以接着加下一个
-  }
 }
 
 function handleBreakClick(event) {
@@ -467,12 +499,42 @@ function handleBreakClick(event) {
     closeBreakPlanner();
     return;
   }
+  // 只改显示的操作：展开 / 收起一个地方、展开 "Add a stop"
+  if (action === 'toggle') {
+    openBreak.expanded = openBreak.expanded === i ? null : i;
+    renderBreakPlanner();
+    return;
+  }
+  if (action === 'adding') {
+    openBreak.adding = true;
+    openBreak.expanded = null;
+    renderBreakPlanner();
+    const input = openBreak.box.querySelector('[data-bp-input]');
+    if (input) {
+      input.focus();
+    }
+    return;
+  }
+  // 停留时间：每次 5 分钟；从"没设"开始按 + 直接到 15 分钟（大多数停留不会只有 5 分钟）
+  if (action === 'more' || action === 'less') {
+    const stay = stops[i].stay || 0;
+    let next = action === 'more' ? (stay === 0 ? 15 : stay + 5) : stay - 5;
+    next = next > 0 ? Math.min(next, 600) : null;
+    stops[i].stay = next;
+    saveBreakPlans(openBreak.walk);
+    renderBreakPlanner(); // 路线没变，不用重画地图
+    return;
+  }
+  // 改变地点顺序或数量的操作：要重新算、重画地图
   if (action === 'remove') {
     stops.splice(i, 1);
+    openBreak.expanded = null;
   } else if (action === 'up' && i > 0) {
     stops.splice(i - 1, 0, stops.splice(i, 1)[0]);
+    openBreak.expanded = i - 1; // 跟着这个地方走，编辑区还开着
   } else if (action === 'down' && i < stops.length - 1) {
     stops.splice(i + 1, 0, stops.splice(i, 1)[0]);
+    openBreak.expanded = i + 1;
   } else if (action === 'best') {
     const better = bestBreakOrder(openBreak.walk, stops);
     if (!better) {
@@ -481,34 +543,12 @@ function handleBreakClick(event) {
     const reordered = better.order.map(function (k) { return stops[k]; });
     stops.splice(0, stops.length);
     reordered.forEach(function (s) { stops.push(s); });
+    openBreak.expanded = null;
     logEvent('break-best-order');
   } else {
     return;
   }
   breakStopsChanged();
-}
-
-// 改停留时间：只重新算时间，不重画地图（路线没变）；光标留在输入框里
-function handleBreakInput(event) {
-  const input = event.target.closest('[data-bp-stay]');
-  if (!input || !openBreak) {
-    return;
-  }
-  const k = Number(input.dataset.bpStay);
-  const value = parseInt(input.value, 10);
-  breakStops(openBreak.walk)[k].stay = value > 0 ? Math.min(value, 600) : null;
-  saveBreakPlans(openBreak.walk);
-  const cursor = input.selectionStart;
-  renderBreakPlanner();
-  const again = openBreak.box.querySelector(`[data-bp-stay="${k}"]`);
-  if (again) {
-    again.focus();
-    try {
-      again.setSelectionRange(cursor, cursor);
-    } catch (error) {
-      // number 输入框有的浏览器不支持设置光标位置，没关系
-    }
-  }
 }
 
 function handleBreakSubmit(event) {
@@ -524,7 +564,6 @@ function handleBreakSubmit(event) {
 function initBreakPlanner() {
   const box = document.getElementById('class-walks');
   box.addEventListener('click', handleBreakClick);
-  box.addEventListener('input', handleBreakInput);
   box.addEventListener('submit', handleBreakSubmit);
 }
 

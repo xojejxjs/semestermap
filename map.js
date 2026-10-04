@@ -213,7 +213,7 @@ function drawBreakRoute(points, paths) {
   showRouteEnds(points[0], points[points.length - 1]); // 两节课的楼：FROM / TO
   map.fitBounds(routeLine.getBounds(), { padding: [90, 60], maxZoom: 17 });
   layoutClassLabels();
-  bringMapIntoView();
+  // 不调用 bringMapIntoView：用户正在规划面板里加、改地方，手机上页面不能每次都跳回地图
 }
 
 // 把地图上的路线删掉（如果有的话）
