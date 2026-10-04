@@ -44,7 +44,7 @@ function trackEvent(name) {
 //         import-all-already（全都已经有了）、import-choice-add / -new / -cancel（选了加进哪一份）
 //   课表：schedule-new、schedule-switch、schedule-delete、schedule-move、compare-open
 //   相同的课：shared-start（点了 Find classes you share）、shared-open（打开了 Shared classes）
-//   看课：class-expand（列表里点开一门课）、map-building（地图上点了上课的楼）、walk-route（点了一段课间步行）
+//   看课：class-expand（列表里点开一门课）、map-building（地图上点了上课的楼）、walk-route（点了一段课间步行）、day-pick（点了星期按钮 / All week）
 //   其他：try-sample、tab-week / tab-dorm / tab-route、route-check、dorm-open、dorm-ranking、feedback-click
 
 

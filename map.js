@@ -410,8 +410,13 @@ function showClassMarkers(groups) {
 
     // 2. 标签直接写清楚意思，不用鼠标悬停也能看懂
     const count = group.classes.length;
-    const shortName = group.place.code || group.place.name;
-    const label = `${shortName} · ${count} ${count === 1 ? 'class' : 'classes'}`;
+    let shortName = group.place.code || group.place.name;
+    let label = `${shortName} · ${count} ${count === 1 ? 'class' : 'classes'}`;
+    // 按星期看（my-week.js）：写上课顺序 "① PRB"，一天去两次就是 "①③ CAS"
+    if (group.stops) {
+      shortName = group.stops.join('') + ' ' + shortName;
+      label = shortName;
+    }
 
     // divIcon：用一小段 HTML 当标记的图案
     // 两种写法都放进去：完整的 "CAS · 3 classes"，和挤的时候用的短的 "CAS"（style.css 决定显示哪个）

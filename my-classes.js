@@ -16,6 +16,7 @@ const myClasses = {
   openId: null,     // 当前展开（正在确认 / 编辑）的是哪门课
   expandedId: null, // 列表里点开看详情的是哪门课（一次只开一门）
   mapPlaceId: null, // 在地图上点了哪栋楼：列表里在这栋楼上的课都标出来
+  day: null,        // 按星期看：null 是 All week，'Wed' 是只看周三（my-week.js）
   undo: null,       // 上一步之前的样子，用来 Undo
   selecting: false, // 是不是在"批量选择"模式（每门课前面有一个圈）
   selected: new Set() // 批量选择模式下，勾选了哪些课（存课的 id）
@@ -566,7 +567,18 @@ function renderMyClasses() {
     }
     group.classes.push(c);
   });
-  showClassMarkers(groups);
+  // 选了某一天：只显示那天要去的楼，标签上写上课顺序 ①②③（my-week.js dayStops）
+  const stops = dayStops();
+  if (stops) {
+    showClassMarkers(groups.filter(function (g) { return stops[g.place.id]; }).map(function (g) {
+      return Object.assign({}, g, {
+        stops: stops[g.place.id],
+        classes: g.classes.filter(function (c) { return c.days.includes(myClasses.day); })
+      });
+    }));
+  } else {
+    showClassMarkers(groups);
+  }
   // 课的数量已经写在 "My classes (n)" 标题上，这里不再重复；#schedule-status 只用来显示读文件的进度和结果
 
   // 标题 + "Select" 按钮放在同一行

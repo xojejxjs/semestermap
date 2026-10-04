@@ -87,6 +87,152 @@ function describeWalk(prev, next, gap, day) {
   return walk;
 }
 
+// ===== 按星期看 =====
+
+const DAY_FULL_NAMES = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
+
+// 某一天的课和课间的路
+// 输入：检查了的课（findClassWalks 的 checked）、星期几（'Wed'）
+// 输出：{ classes, walks }
+//   classes：那天的课，按上课时间排好
+//   walks：walks[i] 是 classes[i] → classes[i + 1] 的那段路（describeWalk 的结果，和 All week 一样的判断）
+function dayPlan(checked, day) {
+  const classes = checked
+    .filter(function (c) { return c.days.includes(day); })
+    .sort(function (a, b) { return a.start - b.start || a.end - b.end; });
+  const walks = [];
+  for (let i = 1; i < classes.length; i++) {
+    walks.push(describeWalk(classes[i - 1], classes[i], classes[i].start - classes[i - 1].end, day));
+  }
+  return { classes: classes, walks: walks };
+}
+
+// 地图上的顺序编号：1 → ①，2 → ② …（20 以后直接写数字）
+function stopNumber(n) {
+  return n <= 20 ? String.fromCharCode(0x2460 + n - 1) : String(n);
+}
+
+// 选了某一天时，地图上每栋楼要显示的编号：{ 地点 id: ['①', '③'] }（同一栋楼一天去两次就有两个编号）
+// 没选（All week）时返回 null
+function dayStops() {
+  if (!myClasses.day) {
+    return null;
+  }
+  const stops = {};
+  dayPlan(findClassWalks(myClasses.items).checked, myClasses.day).classes.forEach(function (c, i) {
+    stops[c.place.id] = (stops[c.place.id] || []).concat([stopNumber(i + 1)]);
+  });
+  return stops;
+}
+
+// 最上面的一排：All week | Mon Tue Wed Thu Fri（周六、周日有课才显示）
+function renderDayPicker(checked) {
+  const days = DAY_ORDER.filter(function (day) {
+    const weekend = day === 'Sat' || day === 'Sun';
+    return !weekend || checked.some(function (c) { return c.days.includes(day); });
+  });
+  let html = '<div class="day-picker" role="group" aria-label="Show one day">';
+  html += `<button type="button" class="day-button" data-day="" aria-pressed="${!myClasses.day}">All week</button>`;
+  days.forEach(function (day) {
+    const count = checked.filter(function (c) { return c.days.includes(day); }).length;
+    // 那天没课：按钮变灰，但还是能点（点了会说"那天没课"）
+    html += `<button type="button" class="day-button${count === 0 ? ' day-empty' : ''}" data-day="${day}" ` +
+      `aria-pressed="${myClasses.day === day}" title="${DAY_FULL_NAMES[day]}: ${count} ${count === 1 ? 'class' : 'classes'}">${day}</button>`;
+  });
+  return html + '</div>';
+}
+
+// 选了某一天：按时间顺序列出那天的课，课和课之间是那段路
+function renderDayPlan(result) {
+  const day = myClasses.day;
+  const plan = dayPlan(result.checked, day);
+  shownWalks = plan.walks;
+
+  let html = `<div class="day-head"><h4>${DAY_FULL_NAMES[day]}` +
+    (plan.classes.length > 0 ? ` · ${plan.classes.length} ${plan.classes.length === 1 ? 'class' : 'classes'}` : '') +
+    '</h4><button type="button" class="link-button" data-day="">← Back to all week</button></div>';
+
+  if (plan.classes.length === 0) {
+    html += `<p class="hint">No classes on ${DAY_FULL_NAMES[day]}.</p>`;
+  } else {
+    // 一行总结（课间很长的不算"赶课"，和 All week 一样）
+    const urgent = plan.walks.filter(function (w) { return w.kind !== 'long'; });
+    if (urgent.length > 0) {
+      html += renderWalkSummary(urgent);
+    } else if (plan.walks.length === 0) {
+      html += '<p class="hint">Only 1 class that day, so nothing to walk.</p>';
+    }
+    html += '<ol class="day-plan">';
+    plan.classes.forEach(function (c, i) {
+      // 左边是顺序编号（和地图上的 ①②③ 一样），右边第一行时间、第二行课名和教室
+      html += `<li class="day-class"><span class="day-stop">${stopNumber(i + 1)}</span><div>` +
+        `<span class="day-time">${escapeHtml(formatClock(c.start))} – ${escapeHtml(formatClock(c.end))}</span>` +
+        `<strong>${escapeHtml(c.title)}</strong> <span class="walk-where">${escapeHtml(classWhere(c))}</span></div></li>`;
+      if (i < plan.walks.length) {
+        html += renderDayWalk(plan.walks[i], i);
+      }
+    });
+    html += '</ol>';
+    if (plan.walks.length > 0) {
+      html += '<p class="hint">Tap a walk to see the route on the map.</p>';
+    }
+  }
+
+  // 那天有课但还不知道在哪：说出来，不然用户会以为那天就这几节
+  const missing = result.unchecked.filter(function (c) { return c.days && c.days.includes(day); });
+  if (missing.length > 0) {
+    const names = missing.map(function (c) { return `${escapeHtml(c.title)} (${uncheckedReason(c)})`; });
+    html += `<p class="hint walk-unchecked">Not checked yet: ${names.join(', ')}.</p>`;
+  }
+  return html;
+}
+
+// 时间线里两节课之间的那段路：比 All week 的一行短（星期和课名上下已经有了）
+function renderDayWalk(walk, index) {
+  let icon;
+  let color;
+  let detail;
+  if (walk.kind === 'clash') {
+    icon = '⚠️';
+    color = 'clash';
+    detail = `Time clash: these overlap by ${-walk.gap} min`;
+  } else if (walk.kind === 'same') {
+    icon = '🟢';
+    color = 'green';
+    detail = `${walk.gap} min break · same building, no walk needed`;
+  } else if (walk.kind === 'long') {
+    icon = '🟢';
+    color = 'long';
+    detail = `${formatBreak(walk.gap)} break`;
+  } else {
+    const route = walk.route;
+    icon = { green: '🟢', yellow: '🟡', red: '🔴' }[route.verdict];
+    color = route.verdict;
+    detail = `${walk.gap} min break · ~${route.minutes} min walk${route.isEstimate ? ' (estimate)' : ''} · ${spareText(walk.gap - route.minutes)}`;
+  }
+  const content = `<span class="walk-detail">↓ ${icon} ${escapeHtml(detail)}</span>`;
+  // 时间冲突：没有课间可以走，不能点
+  if (walk.kind === 'clash') {
+    return `<li class="day-walk"><div class="walk-row walk-${color}">${content}</div></li>`;
+  }
+  return `<li class="day-walk"><button type="button" class="walk-row walk-${color}" data-walk="${index}">${content}` +
+    '<span class="walk-show">Show route on map ›</span></button></li>';
+}
+
+// 换一天（或者回到 All week）
+// 输入：'Wed'，或者 null 表示 All week
+function pickDay(day) {
+  if (day === myClasses.day) {
+    return;
+  }
+  myClasses.day = day;
+  logEvent('day-pick');
+  // 之前画的路线可能不是这一天的：去掉，免得看错
+  clearRouteLine();
+  selectClassPlace(null);
+  renderMyClasses(); // 时间线和地图（只显示那天的楼、加编号）一起更新
+}
+
 // 排序用的等级：数字越小越靠前
 function walkRank(walk) {
   if (walk.kind === 'clash') {
@@ -120,6 +266,17 @@ function renderClassWalks() {
   const long = result.walks.filter(function (w) { return w.kind === 'long'; });
 
   let html = '<h3>Your walks between classes</h3>';
+
+  // 按星期看：有能检查的课才显示这一排按钮
+  if (result.checked.length > 0) {
+    html += renderDayPicker(result.checked);
+  } else {
+    myClasses.day = null; // 课都没了（或者都没地点）：回到 All week
+  }
+  if (myClasses.day) {
+    box.innerHTML = html + renderDayPlan(result);
+    return;
+  }
 
   if (result.walks.length > 0) {
     // 先给结论：一行总结，一眼看出有没有问题
@@ -213,6 +370,12 @@ function renderWalkRow(walk) {
 
 // 点了某一行：Route check 里填好这两节课和课间分钟数，地图上画出路线，然后滚到结果
 function handleWalkClick(event) {
+  // 星期按钮、"← Back to all week"：data-day 是空的就是 All week
+  const dayButton = event.target.closest('button[data-day]');
+  if (dayButton) {
+    pickDay(dayButton.dataset.day || null);
+    return;
+  }
   const row = event.target.closest('button[data-walk]');
   if (!row) {
     return;
