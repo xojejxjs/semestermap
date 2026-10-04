@@ -314,6 +314,7 @@ function walkRank(walk) {
 // renderMyClasses() 每次最后都会调用它，所以课表一变，这里就重新算
 function renderClassWalks() {
   const box = document.getElementById('class-walks');
+  closeBreakPlanner(); // 整个列表要重画：打开着的课间规划也一起收起（规划已经存下来了）
   const result = findClassWalks(myClasses.items);
   shownWalks = result.walks;
 
@@ -461,6 +462,7 @@ function handleWalkClick(event) {
   document.querySelectorAll('#class-walks .walk-row.selected').forEach(function (el) {
     el.classList.remove('selected');
   });
+  closeBreakPlanner(); // 换了一段路：上一段的课间规划也收起来
   document.querySelectorAll('#class-walks .walk-open').forEach(function (el) {
     el.parentElement.classList.remove('walk-expanded');
     el.remove();
@@ -474,13 +476,17 @@ function handleWalkClick(event) {
 // 链接不能放进 <button> 里（HTML 不允许，手机上点击会出问题），所以放在按钮下面，样式上接成一张卡片
 // 输入：那一行的按钮、那段路
 function showOpenInMaps(row, walk) {
-  if (walk.kind === 'same') {
-    return; // 同一栋楼：没有路可以导航
+  // 同一栋楼：没有路可以导航，但课间还是可以规划（比如中间去吃饭）
+  const links = walk.kind === 'same' ? '' : renderOpenInMaps(walk.from.place, walk.to.place); // app.js，和 Directions 结果卡片底部一模一样
+  // 课间有空余时间：可以规划中间去哪（gap-planner.js）
+  const plan = canPlanBreak(walk) ? renderPlanBreakButton(walk) : '';
+  if (!links && !plan) {
+    return;
   }
   const color = Array.from(row.classList).find(function (name) { return name.indexOf('walk-') === 0 && name !== 'walk-row'; });
   const box = document.createElement('div');
   box.className = 'walk-row walk-open ' + (color || '');
-  box.innerHTML = renderOpenInMaps(walk.from.place, walk.to.place); // app.js，和 Directions 结果卡片底部一模一样
+  box.innerHTML = links + plan;
   row.after(box);
   row.parentElement.classList.add('walk-expanded');
 }

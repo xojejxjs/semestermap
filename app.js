@@ -830,6 +830,8 @@ async function main() {
   initMyClasses(placeIndex);
   // 课间步行分析：点一行 → 在 Directions 里显示这段路（my-week.js）
   initClassWalks();
+  // 课间规划：点一段路 → "＋ Plan this break"（gap-planner.js）
+  initBreakPlanner();
 
   ['from-input', 'to-input'].forEach(function (id) {
     const box = document.getElementById(id);

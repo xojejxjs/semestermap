@@ -1881,3 +1881,169 @@ li.walk-expanded button.walk-row.selected {
 .share-warning {
   margin-top: 8px;
 }
+
+/* ===== 课间规划（gap-planner.js） ===== */
+.plan-break-row {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.plan-break-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--action);
+  cursor: pointer;
+}
+
+.break-planner {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+}
+
+.bp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.bp-icon {
+  min-width: 32px;
+  min-height: 32px;   /* 手机上手指容易点到 */
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.bp-icon:disabled {
+  color: #c8ccd2;
+  cursor: default;
+}
+
+.bp-steps {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.bp-class {
+  padding: 4px 0;
+}
+
+.bp-leg {
+  padding: 2px 0 2px 24px;
+  color: var(--muted);
+}
+
+.bp-stop {
+  margin: 2px 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.bp-stop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bp-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bp-tools {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.bp-times {
+  margin: 6px 0 4px 24px;
+}
+
+.bp-late {
+  color: var(--late);
+  font-weight: bold;
+}
+
+.bp-stay {
+  margin-left: 24px;
+  color: var(--muted);
+}
+
+.bp-stay input {
+  width: 56px;
+  padding: 3px 6px;
+  font: inherit;
+}
+
+.bp-verdict {
+  margin: 10px 0 4px;
+  font-weight: bold;
+}
+
+.bp-verdict.bp-red    { color: var(--late); }
+.bp-verdict.bp-yellow { color: #8a6100; }
+.bp-verdict.bp-green  { color: var(--ok); }
+
+.bp-best {
+  margin: 4px 0;
+}
+
+.bp-add {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.bp-add input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 地图上课间规划的每一站：深蓝圆圈 + 白色数字 */
+.stop-pin {
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--mine);
+  color: white;
+  font-size: 15px;
+  line-height: 22px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 地图上搜到的地方（不在我们的数据里）：名字下面写地址，看得出是哪一家 */
+.bp-address {
+  margin: 2px 0 0 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* #sidebar input 默认占满一整行；停留时间的小输入框要和 "Stay … min" 排在同一行 */
+#sidebar .bp-stay input {
+  display: inline-block;
+  width: 64px;
+}

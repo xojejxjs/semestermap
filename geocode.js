@@ -52,6 +52,61 @@ async function geocodeAddress(text) {
   }
 }
 
+// 找一个地方：地址，也可以是店名、地名（"Starbucks"、"Target"、"Blick Art Materials"）
+// 和 geocodeAddress 的区别：多要几个结果，挑离参考点最近的那个
+// （"Starbucks" 波士顿有很多家，要的是最顺路的一家）
+// 输入：文字、参考点：一个 { latitude, longitude }，或者几个（课间规划传两节课的楼：挑"两段路加起来最短"的）
+// 输出：{ latitude, longitude, label, name }；找不到时是 null
+const placeSearchCache = {};
+
+// 先在校园周边找（大约 2 公里内），找不到再扩大到整个波士顿
+// 原因：店名在全城有很多家时，服务只返回前几个结果，校园旁边那家可能不在里面
+const CAMPUS_VIEWBOX = '-71.140,42.365,-71.070,42.335';
+
+async function searchPlaces(text, viewbox) {
+  const params = new URLSearchParams({ q: text, format: 'json', limit: '10', viewbox: viewbox, bounded: '1' });
+  const response = await fetch(GEOCODE_URL + '?' + params);
+  if (!response.ok) {
+    throw new Error('search failed');
+  }
+  return response.json();
+}
+
+async function geocodePlaceNear(text, near) {
+  const key = text.trim().toLowerCase();
+  let results = placeSearchCache[key];
+  if (!results) {
+    try {
+      results = await searchPlaces(text, CAMPUS_VIEWBOX);
+      if (results.length === 0) {
+        results = await searchPlaces(text, BOSTON_VIEWBOX);
+      }
+      placeSearchCache[key] = results;
+    } catch (error) {
+      return null; // 网络出错：不记进缓存，下次再试
+    }
+  }
+  if (results.length === 0) {
+    return null;
+  }
+  // 粗略的距离就够比较远近了（1 度纬度 ≈ 111 km，这里 1 度经度 ≈ 82 km）
+  const refs = Array.isArray(near) ? near : [near];
+  const distance = function (r) {
+    return refs.reduce(function (total, p) {
+      return total + Math.hypot((Number(r.lat) - p.latitude) * 111, (Number(r.lon) - p.longitude) * 82);
+    }, 0);
+  };
+  const best = results.slice().sort(function (a, b) { return distance(a) - distance(b); })[0];
+  const parts = best.display_name.split(',').map(function (x) { return x.trim(); });
+  return {
+    latitude: Number(best.lat),
+    longitude: Number(best.lon),
+    name: best.name || parts[0],
+    // 名字 + 门牌和街道，比如 "Starbucks, 700 Commonwealth Avenue"
+    label: best.name && parts[0] === best.name ? [parts[0], parts.slice(1, 3).join(' ')].join(', ') : parts.slice(0, 2).join(', ')
+  };
+}
+
 // 用户把大头针拖到了新位置：更新记住的坐标，之后再算这个地址就用新位置
 function adjustGeocode(text, latitude, longitude) {
   const key = text.trim().toLowerCase();

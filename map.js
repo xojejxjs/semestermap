@@ -184,6 +184,38 @@ function drawRouteLine(fromPlace, toPlace, verdict, path) {
   bringMapIntoView();
 }
 
+// 课间规划（gap-planner.js）：下课的楼 → ① → ② → 上课的楼，一整条线
+// 输入：地点数组（第一个和最后一个是两节课的楼）、每一段的沿街道路线（没有的段是 null，画直的虚线）
+function drawBreakRoute(points, paths) {
+  clearRouteLine();
+  const parts = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = [points[i].latitude, points[i].longitude];
+    const b = [points[i + 1].latitude, points[i + 1].longitude];
+    const path = paths[i] && paths[i].length > 1 ? paths[i] : [a, b];
+    const dash = paths[i] && paths[i].length > 1 ? null : '8 10';
+    parts.push(L.polyline(path, { color: ROUTE_BORDER_COLOR, weight: 9, opacity: 1, dashArray: dash }));
+    parts.push(L.polyline(path, { color: ROUTE_COLOR, weight: 5, opacity: 1, dashArray: dash }));
+  }
+  // 中间每个地方：深蓝圆圈里写 ①②，和按星期看的编号一样
+  points.slice(1, -1).forEach(function (place, i) {
+    parts.push(L.marker([place.latitude, place.longitude], {
+      icon: L.divIcon({
+        className: 'class-pin-wrapper',
+        html: `<div class="stop-pin">${stopNumber(i + 1)}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      }),
+      zIndexOffset: 16000
+    }).bindTooltip(escapeHtml(place.name)));
+  });
+  routeLine = L.featureGroup(parts).addTo(map);
+  showRouteEnds(points[0], points[points.length - 1]); // 两节课的楼：FROM / TO
+  map.fitBounds(routeLine.getBounds(), { padding: [90, 60], maxZoom: 17 });
+  layoutClassLabels();
+  bringMapIntoView();
+}
+
 // 把地图上的路线删掉（如果有的话）
 function clearRouteLine() {
   if (routeLine !== null) {

@@ -189,7 +189,8 @@ function saveMyClasses() {
         version: 2,
         activeId: myClasses.activeId,
         schedules: myClasses.schedules.map(function (schedule) {
-          return { id: schedule.id, name: schedule.name, kind: schedule.kind || null, items: schedule.items.map(classToSaved) };
+          // breakPlans：课间规划（gap-planner.js），key 是那一对课
+          return { id: schedule.id, name: schedule.name, kind: schedule.kind || null, items: schedule.items.map(classToSaved), breakPlans: schedule.breakPlans || undefined };
         })
       }));
     }
@@ -216,6 +217,9 @@ function loadSavedSchedules(placeIndex) {
         const restored = { id: Number(schedule.id) || i + 1, name: String(schedule.name || 'My schedule'), items: toClasses(schedule.items) };
         if (schedule.kind === 'friend') {
           restored.kind = 'friend'; // 朋友的课表（Shared classes 默认选它）
+        }
+        if (schedule.breakPlans && typeof schedule.breakPlans === 'object') {
+          restored.breakPlans = schedule.breakPlans; // 课间规划（gap-planner.js）
         }
         return restored;
       });
