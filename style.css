@@ -2133,3 +2133,58 @@ li.walk-expanded button.walk-row.selected {
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
+
+/* 一个地方的那一行：左边可以点开，右边一个安静的 ✕ */
+.bp-stop-line {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bp-stop-line .bp-stop-toggle {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 删除：灰色、没有边框，但点击区域够大（32px），不和名字抢注意力 */
+.bp-remove-x {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: -6px -8px -6px 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  font-size: 14px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.bp-remove-x:hover,
+.bp-remove-x:focus-visible {
+  background: var(--late-bg);
+  color: var(--late);
+}
+
+/* 名字在上、停留时间在下：名字可以换行，手机上不会被截成 "Marciano…" */
+.bp-name-block {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.bp-name-block .bp-name {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.bp-name-block .bp-stay-summary {
+  margin-top: 1px;
+}
+
+.bp-stop-line {
+  align-items: flex-start;
+}

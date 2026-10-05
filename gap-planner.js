@@ -211,10 +211,16 @@ function breakStopRow(stop, t, k, count) {
   } else {
     stay = `up to ${formatBreak(t.maxStay)}`;
   }
-  let html = `<button type="button" class="bp-stop-toggle" data-bp="toggle" data-i="${k}" aria-expanded="${expanded}">` +
+  // 一行：[① 名字 …… 停留时间 ›]（点了展开）+ 右边一个安静的 ✕（删除是常用操作，不藏起来）
+  // 两个按钮并排放（按钮里面不能再放按钮）
+  let html = '<div class="bp-stop-line">' +
+    `<button type="button" class="bp-stop-toggle" data-bp="toggle" data-i="${k}" aria-expanded="${expanded}">` +
     `<span class="day-stop">${stopNumber(k + 1)}</span>` +
-    `<strong class="bp-name">${escapeHtml(stopDisplayName(stop))}</strong>` +
-    `<span class="bp-stay-summary">${stay} ${expanded ? '⌃' : '›'}</span></button>`;
+    // 名字占满一行（手机上不被截断）；停留时间放在名字下面
+    `<span class="bp-name-block"><strong class="bp-name">${escapeHtml(stopDisplayName(stop))}</strong>` +
+    `<span class="bp-stay-summary">${stay} ${expanded ? '⌃' : '›'}</span></span></button>` +
+    `<button type="button" class="bp-remove-x" data-bp="remove" data-i="${k}" aria-label="Remove ${escapeAttr(stopDisplayName(stop))}">✕</button>` +
+    '</div>';
   if (!stop.placeId) {
     html += `<div class="bp-address">${escapeHtml(stop.label)}</div>`;
   }
@@ -227,11 +233,10 @@ function breakStopRow(stop, t, k, count) {
         <button type="button" class="bp-step" data-bp="more" data-i="${k}" aria-label="5 minutes more">+</button>
         <span class="hint">leave by ${formatClock(t.leaveBy)}${t.maxStay >= 0 ? ' · up to ' + formatBreak(t.maxStay) : ''}</span>
       </div>
-      <div class="bp-edit-links">
+      ${count > 1 ? `<div class="bp-edit-links">
         ${k > 0 ? `<button type="button" class="link-button" data-bp="up" data-i="${k}">Move up</button>` : ''}
         ${k < count - 1 ? `<button type="button" class="link-button" data-bp="down" data-i="${k}">Move down</button>` : ''}
-        <button type="button" class="link-button bp-remove" data-bp="remove" data-i="${k}">Remove</button>
-      </div>
+      </div>` : ''}
     </div>`;
   }
   return breakRow(t.arrive, html, 'bp-stop' + (expanded ? ' bp-open' : ''));
