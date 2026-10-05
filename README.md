@@ -10,6 +10,8 @@
 
 *An independent student project. Not affiliated with Boston University.*
 
+**The icon** is my initials, **ML**, written as one walking route: start at the hollow circle, pass two classes, and end on the green dot: on time.
+
 ## Why
 
 - Dorm information is scattered across the BU Housing site, Xiaohongshu, Reddit and forums. There is no single place to compare dorms side by side.

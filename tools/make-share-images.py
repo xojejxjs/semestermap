@@ -1,5 +1,5 @@
 # tools/make-share-images.py：一次性工具脚本，不属于网页本身
-# 作用：生成网站图标（favicon-32.png、apple-touch-icon.png）和分享预览图（og-image.png）
+# 作用：生成网站图标（favicon-32.png、apple-touch-icon.png、icon-192/512、icon-maskable-512）和分享预览图（og-image.png）
 #       分享预览图：把网址发到微信、iMessage、Slack 时，出现的那张带图的卡片
 # 运行方法（在 bu-dorm-distance 文件夹里）：python3 tools/make-share-images.py   （需要 Pillow：pip install pillow）
 # 什么时候需要重新运行：网站的名字、颜色、主要功能变了以后
@@ -13,17 +13,62 @@ def font(size, bold=False):
     path = '/System/Library/Fonts/HelveticaNeue.ttc'
     return ImageFont.truetype(path, size, index=1 if bold else 0)
 
+# ===== 图标：一笔写成的 "ML"（作者名字的缩写），同时是一条步行路线 =====
+# M 的右腿就是 L 的竖：一条路线写完两个字母。左下空心圈 = 出发，中间两个小点 = 两节课，右边绿点 = 准时到达
+ICON_RED_TOP, ICON_RED_BOT = (236, 56, 56), (196, 28, 40)
+ICON_GREEN = (46, 213, 115)
+ML_POINTS = [(205, 790), (205, 250), (395, 560), (585, 250), (585, 790), (830, 790)]  # 1024 x 1024 画布上的坐标
+
+def _smooth(pts, r):
+    # 转角用二次贝塞尔曲线做成圆弧：更像真实的走路路线（人不会走直角）
+    import math
+    out = [pts[0]]
+    for i in range(1, len(pts) - 1):
+        (x0, y0), (x1, y1), (x2, y2) = pts[i - 1], pts[i], pts[i + 1]
+        def toward(ax, ay, bx, by, dist):
+            L = math.hypot(bx - ax, by - ay); t = min(dist / L, 0.5)
+            return ax + (bx - ax) * t, ay + (by - ay) * t
+        a = toward(x1, y1, x0, y0, r); b = toward(x1, y1, x2, y2, r)
+        out.append(a)
+        for k in range(1, 16):
+            t = k / 16
+            out.append(((1 - t) ** 2 * a[0] + 2 * (1 - t) * t * x1 + t * t * b[0],
+                        (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * y1 + t * t * b[1]))
+        out.append(b)
+    out.append(pts[-1]); return out
+
+def _draw_ml(d, scale, offset):
+    # 在 1024 的设计稿上画，再按 scale 缩放、offset 平移（可裁剪版图标要缩小放在中间）
+    def P(x, y):
+        return (x * scale + offset, y * scale + offset)
+    def dot(x, y, r, c):
+        cx, cy = P(x, y); rr = r * scale
+        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=c)
+    pts = _smooth(ML_POINTS, 85)
+    d.line([P(x, y) for x, y in pts], fill='white', width=int(84 * scale), joint='curve')
+    for x, y in pts:
+        dot(x, y, 42, 'white')
+    x, y = ML_POINTS[0]; dot(x, y, 76, 'white'); dot(x, y, 40, ICON_RED_TOP)       # 起点：空心圈
+    for x, y in (ML_POINTS[2], ML_POINTS[4]):
+        dot(x, y, 20, ICON_RED_BOT)                                                 # 两节课：线上的小点
+    x, y = ML_POINTS[-1]; dot(x, y, 92, ICON_GREEN); dot(x, y, 34, 'white')         # 终点：绿色 = 准时到
+
+def _red_background(s):
+    img = Image.new('RGBA', (s, s)); d = ImageDraw.Draw(img)
+    for y in range(s):
+        t = y / (s - 1)
+        d.line([(0, y), (s, y)], fill=tuple(int(ICON_RED_TOP[i] + (ICON_RED_BOT[i] - ICON_RED_TOP[i]) * t) for i in range(3)) + (255,))
+    return img
+
 def icon(size):
-    # 红色圆角方块 + 白色定位针（中间一个红点）
-    s = size * 4  # 先画大图再缩小，边缘更平滑
-    img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle([0, 0, s - 1, s - 1], radius=s // 5, fill=RED)
-    cx, top, r = s / 2, s * 0.18, s * 0.24
-    d.ellipse([cx - r, top, cx + r, top + 2 * r], fill='white')
-    d.polygon([(cx - r * 0.82, top + r * 1.45), (cx + r * 0.82, top + r * 1.45), (cx, s * 0.84)], fill='white')
-    d.ellipse([cx - r * 0.42, top + r * 0.58, cx + r * 0.42, top + r * 1.42], fill=RED)
-    return img.resize((size, size), Image.LANCZOS)
+    # 圆角方块（iPhone、浏览器标签页、分享图上用）
+    s = 1024
+    img = _red_background(s)
+    _draw_ml(ImageDraw.Draw(img), 1, 0)
+    mask = Image.new('L', (s, s), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, s - 1, s - 1], radius=int(s * 0.2237), fill=255)
+    out = Image.new('RGBA', (s, s), (0, 0, 0, 0)); out.paste(img, (0, 0), mask)
+    return out.resize((size, size), Image.LANCZOS)
 
 icon(180).save(os.path.join(OUT, 'apple-touch-icon.png'))
 icon(32).save(os.path.join(OUT, 'favicon-32.png'))
@@ -33,16 +78,11 @@ icon(192).save(os.path.join(OUT, 'icon-192.png'))
 icon(512).save(os.path.join(OUT, 'icon-512.png'))
 
 def maskable(size):
-    # Android 会把图标裁成圆形、圆角方块等形状：底色铺满整张图，定位针缩小放在中间的安全区（中间 80%）里
-    s = size * 4
-    img = Image.new('RGBA', (s, s), RED)
-    d = ImageDraw.Draw(img)
-    k = 0.72                      # 定位针缩小到 72%，保证在安全区里
-    o = s * (1 - k) / 2           # 居中
-    cx, top, r = s / 2, o + s * k * 0.18, s * k * 0.24
-    d.ellipse([cx - r, top, cx + r, top + 2 * r], fill='white')
-    d.polygon([(cx - r * 0.82, top + r * 1.45), (cx + r * 0.82, top + r * 1.45), (cx, o + s * k * 0.84)], fill='white')
-    d.ellipse([cx - r * 0.42, top + r * 0.58, cx + r * 0.42, top + r * 1.42], fill=RED)
+    # Android 会把图标裁成圆形、圆角方块等形状：红色铺满整张图，ML 缩小到 76% 放在中间的安全区里
+    s = 1024
+    img = _red_background(s)
+    k = 0.76
+    _draw_ml(ImageDraw.Draw(img), k, s * (1 - k) / 2)
     return img.resize((size, size), Image.LANCZOS)
 
 maskable(512).save(os.path.join(OUT, 'icon-maskable-512.png'))
