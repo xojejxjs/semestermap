@@ -28,6 +28,25 @@ def icon(size):
 icon(180).save(os.path.join(OUT, 'apple-touch-icon.png'))
 icon(32).save(os.path.join(OUT, 'favicon-32.png'))
 
+# 加到手机主屏幕用的图标（manifest.json）
+icon(192).save(os.path.join(OUT, 'icon-192.png'))
+icon(512).save(os.path.join(OUT, 'icon-512.png'))
+
+def maskable(size):
+    # Android 会把图标裁成圆形、圆角方块等形状：底色铺满整张图，定位针缩小放在中间的安全区（中间 80%）里
+    s = size * 4
+    img = Image.new('RGBA', (s, s), RED)
+    d = ImageDraw.Draw(img)
+    k = 0.72                      # 定位针缩小到 72%，保证在安全区里
+    o = s * (1 - k) / 2           # 居中
+    cx, top, r = s / 2, o + s * k * 0.18, s * k * 0.24
+    d.ellipse([cx - r, top, cx + r, top + 2 * r], fill='white')
+    d.polygon([(cx - r * 0.82, top + r * 1.45), (cx + r * 0.82, top + r * 1.45), (cx, o + s * k * 0.84)], fill='white')
+    d.ellipse([cx - r * 0.42, top + r * 0.58, cx + r * 0.42, top + r * 1.42], fill=RED)
+    return img.resize((size, size), Image.LANCZOS)
+
+maskable(512).save(os.path.join(OUT, 'icon-maskable-512.png'))
+
 # 分享预览图 1200×630：左边名字和三件事，右边一张示意小地图
 W, H = 1200, 630
 img = Image.new('RGB', (W, H), 'white')

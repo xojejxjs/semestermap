@@ -31,6 +31,11 @@
   <!-- 网站图标：浏览器标签页上的小图标；apple-touch-icon 是存到手机主屏幕时用的大图标 -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <!-- 加到手机主屏幕：App 的名字、图标（manifest.json）；iPhone 上从主屏幕打开时全屏显示 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="WalkMyWeek">
   <meta name="theme-color" content="#ffffff">
 
   <!-- 结构化数据：用 Google 认得的格式说明"这是一个免费的网页应用"，搜索结果可能显示得更完整 -->
@@ -51,7 +56,7 @@
   <!-- Leaflet 的样式文件，必须引入，否则地图显示会错乱 -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <link rel="stylesheet" href="style.css?v=2026-10-04k" />
+  <link rel="stylesheet" href="style.css?v=2026-10-04n" />
 </head>
 <body>
   <noscript>
@@ -261,23 +266,24 @@
 
   <!-- 我们自己的 JS，顺序很重要：被别人用的文件要先加载 -->
   <!-- ?v=版本号：每次更新网站时改这个号码，浏览器就会下载新文件，而不是继续用缓存里的旧文件 -->
-  <script>const APP_VERSION = '2026-10-04k';</script>
-  <script src="distance.js?v=2026-10-04k"></script>
-  <script src="geocode.js?v=2026-10-04k"></script>
-  <script src="route-api.js?v=2026-10-04k"></script>
-  <script src="schedule.js?v=2026-10-04k"></script>
-  <script src="schedule-import.js?v=2026-10-04k"></script>
-  <script src="course-guess.js?v=2026-10-04k"></script>
-  <script src="my-classes.js?v=2026-10-04k"></script>
-  <script src="my-week.js?v=2026-10-04k"></script>
-  <script src="share.js?v=2026-10-04k"></script>
-  <script src="gap-planner.js?v=2026-10-04k"></script>
-  <script src="schedules.js?v=2026-10-04k"></script>
-  <script src="compare.js?v=2026-10-04k"></script>
-  <script src="map.js?v=2026-10-04k"></script>
-  <script src="tabs.js?v=2026-10-04k"></script>
-  <script src="app.js?v=2026-10-04k"></script>
-  <script src="analytics.js?v=2026-10-04k"></script>
+  <script>const APP_VERSION = '2026-10-04n';</script>
+  <script src="distance.js?v=2026-10-04n"></script>
+  <script src="geocode.js?v=2026-10-04n"></script>
+  <script src="route-api.js?v=2026-10-04n"></script>
+  <script src="schedule.js?v=2026-10-04n"></script>
+  <script src="schedule-import.js?v=2026-10-04n"></script>
+  <script src="course-guess.js?v=2026-10-04n"></script>
+  <script src="my-classes.js?v=2026-10-04n"></script>
+  <script src="my-week.js?v=2026-10-04n"></script>
+  <script src="share.js?v=2026-10-04n"></script>
+  <script src="gap-planner.js?v=2026-10-04n"></script>
+  <script src="pwa.js?v=2026-10-04n"></script>
+  <script src="schedules.js?v=2026-10-04n"></script>
+  <script src="compare.js?v=2026-10-04n"></script>
+  <script src="map.js?v=2026-10-04n"></script>
+  <script src="tabs.js?v=2026-10-04n"></script>
+  <script src="app.js?v=2026-10-04n"></script>
+  <script src="analytics.js?v=2026-10-04n"></script>
 
   <!-- 访问统计（GoatCounter）：不用 cookie；只在线上网站统计，本地测试不算 -->
   <script data-goatcounter="https://xojejxjs.goatcounter.com/count"

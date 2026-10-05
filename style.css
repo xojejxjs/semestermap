@@ -2188,3 +2188,41 @@ li.walk-expanded button.walk-row.selected {
 .bp-stop-line {
   align-items: flex-start;
 }
+
+/* ===== 加到主屏幕、没网（pwa.js） ===== */
+.install-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.install-button {
+  color: var(--action);
+  text-decoration: none;
+}
+
+.install-dismiss {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+/* 没网时最上面一条：中性的灰色（🟢🟡🔴 只用来表示"来不来得及"，这里不能用黄色） */
+.offline-banner {
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink);
+}

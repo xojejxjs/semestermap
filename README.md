@@ -28,7 +28,7 @@
 - **Plan this break** — tap a walk with spare time and add the places you want to go in between (lunch, the library, your dorm, or any shop or address on the map). For each stop you see when you'll arrive, when you must leave and how long you can stay, plus whether you'll still make your next class. Reorder or remove stops, get a "best order" suggestion, and open the whole route in Google Maps.
 - **Send to another device** — move your schedule from laptop to phone (scan a QR code) or phone to laptop (AirDrop, Messages, WeChat, email), or send it to a friend for Shared classes. The schedule is packed into the part of the link after `#`, which browsers never send to any server, so nothing is uploaded.
 - **Dorm ranking** — choose a building and see every dorm ranked by walking time to it.
-- Works on phones as well as laptops.
+- Works on phones as well as laptops. **Add it to your Home Screen** and it opens like an app; it also **works offline** (your classes and walking times are saved on the device; the map background and address search need internet). The service worker always fetches the newest version when online.
 
 ## How walking times are calculated
 
