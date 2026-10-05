@@ -42,8 +42,19 @@ header {
   border-bottom: 1px solid var(--line);
 }
 
-header {
-  position: relative; /* 让 Feedback 按钮可以放在右上角 */
+/* 第一行：名字在左，按钮在右 */
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
 }
 
 header h1 {
@@ -54,9 +65,6 @@ header h1 {
 
 /* 右上角的 Feedback 按钮 */
 .feedback-link {
-  position: absolute;
-  top: 12px;
-  right: 16px;
   padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -67,11 +75,6 @@ header h1 {
 
 .feedback-link:hover {
   background: #f3f4f6;
-}
-
-/* 有 Feedback 按钮时，副标题不要伸到按钮下面 */
-header:has(.feedback-link:not([hidden])) .tagline {
-  padding-right: 110px;
 }
 
 /* display 规则会盖过 hidden 属性，再写一次 */
@@ -2190,29 +2193,71 @@ li.walk-expanded button.walk-row.selected {
 }
 
 /* ===== 加到主屏幕、没网（pwa.js） ===== */
-.install-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0 0;
+/* 右上角的 "📲 Get the app"：实心蓝色（这个网站里蓝色 = 可以点的操作），比旁边的 Feedback 更显眼 */
+.install-cta {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 14px;
+  background: var(--action);
+  font: inherit;
   font-size: 13px;
-  color: var(--muted);
+  font-weight: bold;
+  color: white;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.install-button {
-  color: var(--action);
-  text-decoration: none;
+.install-cta:hover {
+  filter: brightness(1.1);
 }
 
-.install-dismiss {
-  flex: none;
-  width: 28px;
-  height: 28px;
+.install-cta[hidden] {
+  display: none;
+}
+
+/* 点了以后：标题下面出现一张小卡片，一步一步教怎么加 */
+.install-sheet {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--action-bg);
+  font-size: 14px;
+}
+
+.install-sheet[hidden] {
+  display: none;
+}
+
+.install-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.install-sheet-close {
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   background: none;
-  color: #9ca3af;
+  color: var(--muted);
   cursor: pointer;
+}
+
+.install-steps {
+  margin: 6px 0;
+  padding-left: 22px;
+  line-height: 1.8;
+}
+
+/* 说明里画的 iPhone 分享按钮 */
+.share-glyph {
+  width: 18px;
+  height: 18px;
+  vertical-align: -3px;
+  color: var(--action);
 }
 
 /* 没网时最上面一条：中性的灰色（🟢🟡🔴 只用来表示"来不来得及"，这里不能用黄色） */

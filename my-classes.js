@@ -638,15 +638,10 @@ function renderMyClasses() {
     // 只存在这个浏览器里 → 紧接着给出"传到另一台设备"（share.js），在用户最需要的地方
     html += `<p class="saved-note">💾 Saved in this browser only, so your classes are still here next time.
       <button type="button" class="link-button" data-action="clear-all">Clear all classes</button></p>
-      <p class="share-row"><button type="button" class="link-button share-button" data-action="share">📤 Send to your phone or laptop</button></p>
-      <p class="install-row" id="install-row" hidden></p>`;
+      <p class="share-row"><button type="button" class="link-button share-button" data-action="share">📤 Send to your phone or laptop</button></p>`;
   }
 
   list.innerHTML = html;
-  // "加到主屏幕"那一小行（pwa.js）：要看这台设备、这个浏览器，列表画好以后再填
-  if (typeof updateInstallRow === 'function') {
-    updateInstallRow();
-  }
 
   // 有展开的卡片（比如刚扫描完、预先选中了新截图里的地点）：更新它的确认按钮
   if (myClasses.openId !== null) {
