@@ -91,10 +91,10 @@ async function openSharePanel() {
   const link = await buildShareLink();
   panel.dataset.link = link;
 
-  const what = `${count} ${count === 1 ? 'class' : 'classes'} from "${escapeHtml(activeSchedule().name)}"`;
+  const what = `${count} ${count === 1 ? 'class' : 'classes'} from "${keepOriginal(escapeHtml(activeSchedule().name))}"`;
   let html = `<div class="share-box"><strong>Send ${what}</strong>`;
   if (useNativeShare()) {
-    html += '<p class="hint">AirDrop it to your laptop, or send it to yourself on WeChat, Messages or email.</p>' +
+    html += '<p class="hint"><span translate="no">AirDrop</span> it to your laptop, or send it to yourself on <span translate="no">WeChat</span>, <span translate="no">Messages</span> or email.</p>' +
       '<div class="share-actions"><button type="button" class="primary-button" data-share="native">Share link…</button>' +
       '<button type="button" class="small-button" data-share="copy">Copy link</button></div>';
   } else {

@@ -167,7 +167,7 @@ function renderDayPlan(result) {
       // 左边是顺序编号（和地图上的 ①②③ 一样），右边第一行时间、第二行课名和教室
       html += `<li class="day-class"><span class="day-stop">${stopNumber(i + 1)}</span><div>` +
         `<span class="day-time">${escapeHtml(formatClock(c.start))} – ${escapeHtml(formatClock(c.end))}</span>` +
-        `<strong>${escapeHtml(c.title)}</strong> <span class="walk-where">${escapeHtml(classWhere(c))}</span></div>` +
+        `<strong translate="no">${escapeHtml(c.title)}</strong> <span class="walk-where" translate="no">${escapeHtml(classWhere(c))}</span></div>` +
         `<button type="button" class="directions-button" data-directions="${c.id}">Directions ›</button></li>`;
       if (i < plan.walks.length) {
         html += renderDayWalk(plan.walks[i], i);
@@ -182,7 +182,7 @@ function renderDayPlan(result) {
   // 那天有课但还不知道在哪：说出来，不然用户会以为那天就这几节
   const missing = result.unchecked.filter(function (c) { return c.days && c.days.includes(day); });
   if (missing.length > 0) {
-    const names = missing.map(function (c) { return `${escapeHtml(c.title)} (${uncheckedReason(c)})`; });
+    const names = missing.map(function (c) { return `${keepOriginal(escapeHtml(c.title))} (${uncheckedReason(c)})`; });
     html += `<p class="hint walk-unchecked">Not checked yet: ${names.join(', ')}.</p>`;
   }
   return html;
@@ -373,7 +373,7 @@ function renderClassWalks() {
   // 4. 没法检查的课：说出来，不然用户会以为"没显示 = 没问题"
   if (result.unchecked.length > 0) {
     const names = result.unchecked.map(function (c) {
-      return `${escapeHtml(c.title)} (${uncheckedReason(c)})`;
+      return `${keepOriginal(escapeHtml(c.title))} (${uncheckedReason(c)})`;
     });
     html += `<p class="hint walk-unchecked">Not checked yet: ${names.join(', ')}.</p>`;
   }
@@ -416,8 +416,8 @@ function renderWalkRow(walk) {
 
   const content = `
       <span class="walk-when">${icon} ${escapeHtml(days)} · ${escapeHtml(when)}</span>
-      <strong>${escapeHtml(from.title)} <span class="walk-where">${escapeHtml(classWhere(from))}</span></strong>
-      <strong>→ ${escapeHtml(to.title)} <span class="walk-where">${escapeHtml(classWhere(to))}</span></strong>
+      <strong translate="no">${escapeHtml(from.title)} <span class="walk-where">${escapeHtml(classWhere(from))}</span></strong>
+      <strong translate="no">→ ${escapeHtml(to.title)} <span class="walk-where">${escapeHtml(classWhere(to))}</span></strong>
       <span class="walk-detail">${escapeHtml(detail)}</span>`;
 
   // 时间冲突：没有课间可以走，不能点

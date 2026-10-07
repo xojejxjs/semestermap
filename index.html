@@ -29,10 +29,10 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <!-- 网站图标：浏览器标签页上的小图标；apple-touch-icon 是存到手机主屏幕时用的大图标 -->
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2026-10-04p">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2026-10-04p">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2026-10-06c">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2026-10-06c">
   <!-- 加到手机主屏幕：App 的名字、图标（manifest.json）；iPhone 上从主屏幕打开时全屏显示 -->
-  <link rel="manifest" href="manifest.json?v=2026-10-04p">
+  <link rel="manifest" href="manifest.json?v=2026-10-06c">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="WalkMyWeek">
@@ -56,7 +56,7 @@
   <!-- Leaflet 的样式文件，必须引入，否则地图显示会错乱 -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <link rel="stylesheet" href="style.css?v=2026-10-04p" />
+  <link rel="stylesheet" href="style.css?v=2026-10-06c" />
 </head>
 <body>
   <noscript>
@@ -67,7 +67,7 @@
   <header>
     <!-- 第一行：左边名字，右边两个按钮（加到主屏幕、反馈）；副标题在下面占满一整行 -->
     <div class="header-top">
-      <h1>WalkMyWeek</h1>
+      <h1 translate="no">WalkMyWeek</h1>
       <div class="header-actions">
         <!-- 加到手机主屏幕：放在每一页都看得到的地方（pwa.js 决定显不显示、点了做什么） -->
         <button type="button" id="install-cta" class="install-cta" hidden>📲 Get the app</button>
@@ -124,7 +124,7 @@
               <p class="ics-guide-title">Fastest and most accurate: your school calendar file</p>
               <ol class="ics-steps">
                 <li>Open your class schedule in your <strong>student portal</strong>.</li>
-                <li>Click <span class="bu-button" aria-hidden="true">Download (.ics) ▾</span><span class="visually-hidden">the Download (.ics) button</span> at the top right and save the file.</li>
+                <li>Click <span class="bu-button" aria-hidden="true" translate="no">Download (.ics) ▾</span><span class="visually-hidden">the Download (.ics) button</span> at the top right and save the file.</li>
                 <li><label for="schedule-file" class="file-button">📅 Choose the .ics file</label></li>
               </ol>
             </div>
@@ -218,7 +218,7 @@
           <!-- 从我现在的位置出发：点了才问浏览器要定位，打开网站时不会问（app.js useMyLocation） -->
           <div class="location-row">
             <button type="button" class="pick-chip location-button" id="use-location">📍 Use my location</button>
-            <span class="location-note">Used only to draw this route. WalkMyWeek doesn’t save it.</span>
+            <span class="location-note">Used only to draw this route. <span translate="no">WalkMyWeek</span> doesn’t save it.</span>
           </div>
 
           <!-- 常去的地方：To 已经填好、From 还空着时显示在这里（比如点了课的 "Directions"，课是终点） -->
@@ -251,13 +251,13 @@
       <!-- 数据来源说明：让用户知道信息从哪里来、步行时间只是估算 -->
       <footer id="sources">
         Walking times between listed places are real walking routes from
-        <a href="https://openrouteservice.org/" target="_blank">openrouteservice</a>;
+        <a href="https://openrouteservice.org/" target="_blank" translate="no">openrouteservice</a>;
         typed addresses use a rough straight-line estimate. Dorm details from
-        <a href="https://www.bu.edu/housing/" target="_blank">the official housing website</a>; map data ©
-        <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>.
-        Addresses you type are looked up with OpenStreetMap's Nominatim service.
-        © 2026 Menglu Wu. Independent student project, not affiliated with Boston University.
-        Anonymous visit counts with <a href="https://www.goatcounter.com/" target="_blank">GoatCounter</a>, no cookies;
+        <a href="https://www.bu.edu/housing/" target="_blank" translate="no">the official housing website</a>; map data ©
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" translate="no">OpenStreetMap contributors</a>.
+        Addresses you type are looked up with <span translate="no">OpenStreetMap</span>'s <span translate="no">Nominatim</span> service.
+        © 2026 <span translate="no">Menglu Wu</span>. Independent student project, not affiliated with <span translate="no">Boston University</span>.
+        Anonymous visit counts with <a href="https://www.goatcounter.com/" target="_blank" translate="no">GoatCounter</a>, no cookies;
         your schedule never leaves your browser.
       </footer>
 
@@ -275,24 +275,24 @@
 
   <!-- 我们自己的 JS，顺序很重要：被别人用的文件要先加载 -->
   <!-- ?v=版本号：每次更新网站时改这个号码，浏览器就会下载新文件，而不是继续用缓存里的旧文件 -->
-  <script>const APP_VERSION = '2026-10-04p';</script>
-  <script src="distance.js?v=2026-10-04p"></script>
-  <script src="geocode.js?v=2026-10-04p"></script>
-  <script src="route-api.js?v=2026-10-04p"></script>
-  <script src="schedule.js?v=2026-10-04p"></script>
-  <script src="schedule-import.js?v=2026-10-04p"></script>
-  <script src="course-guess.js?v=2026-10-04p"></script>
-  <script src="my-classes.js?v=2026-10-04p"></script>
-  <script src="my-week.js?v=2026-10-04p"></script>
-  <script src="share.js?v=2026-10-04p"></script>
-  <script src="gap-planner.js?v=2026-10-04p"></script>
-  <script src="pwa.js?v=2026-10-04p"></script>
-  <script src="schedules.js?v=2026-10-04p"></script>
-  <script src="compare.js?v=2026-10-04p"></script>
-  <script src="map.js?v=2026-10-04p"></script>
-  <script src="tabs.js?v=2026-10-04p"></script>
-  <script src="app.js?v=2026-10-04p"></script>
-  <script src="analytics.js?v=2026-10-04p"></script>
+  <script>const APP_VERSION = '2026-10-06c';</script>
+  <script src="distance.js?v=2026-10-06c"></script>
+  <script src="geocode.js?v=2026-10-06c"></script>
+  <script src="route-api.js?v=2026-10-06c"></script>
+  <script src="schedule.js?v=2026-10-06c"></script>
+  <script src="schedule-import.js?v=2026-10-06c"></script>
+  <script src="course-guess.js?v=2026-10-06c"></script>
+  <script src="my-classes.js?v=2026-10-06c"></script>
+  <script src="my-week.js?v=2026-10-06c"></script>
+  <script src="share.js?v=2026-10-06c"></script>
+  <script src="gap-planner.js?v=2026-10-06c"></script>
+  <script src="pwa.js?v=2026-10-06c"></script>
+  <script src="schedules.js?v=2026-10-06c"></script>
+  <script src="compare.js?v=2026-10-06c"></script>
+  <script src="map.js?v=2026-10-06c"></script>
+  <script src="tabs.js?v=2026-10-06c"></script>
+  <script src="app.js?v=2026-10-06c"></script>
+  <script src="analytics.js?v=2026-10-06c"></script>
 
   <!-- 访问统计（GoatCounter）：不用 cookie；只在线上网站统计，本地测试不算 -->
   <script data-goatcounter="https://xojejxjs.goatcounter.com/count"

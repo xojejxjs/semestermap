@@ -152,14 +152,14 @@ function renderSharedPanel() {
   // 选"我"
   html += '<div class="shared-row"><label for="shared-base">Me</label><select id="shared-base">';
   schedules.forEach(function (s) {
-    html += `<option value="${s.id}" ${s.id === baseId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`;
+    html += `<option value="${s.id}" translate="no" ${s.id === baseId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`;
   });
   html += '</select></div>';
   // 选"和谁比"：可以多选
   html += '<div class="shared-row"><span class="shared-with-label">With</span><div class="shared-chips">';
   others.forEach(function (s) {
     const on = myClasses.sharedWith.has(s.id);
-    html += `<button type="button" class="schedule-chip" data-with="${s.id}" aria-pressed="${on}">${on ? '✓ ' : ''}${escapeHtml(s.name)}</button>`;
+    html += `<button type="button" class="schedule-chip" data-with="${s.id}" aria-pressed="${on}">${on ? '✓ ' : ''}${keepOriginal(escapeHtml(s.name))}</button>`;
   });
   html += '</div></div>';
 
@@ -180,7 +180,7 @@ function renderSharedPanel() {
         const when = meetings.map(function (m) {
           return shortWhen(m) + (m.place ? ' · ' + classWhere(m) : '');
         }).join('; ');
-        html += `<li><strong>${escapeHtml(g.title)}</strong> <span class="common-code">${escapeHtml(g.course)}</span>
+        html += `<li><strong translate="no">${escapeHtml(g.title)}</strong> <span class="common-code" translate="no">${escapeHtml(g.course)}</span>
           <span class="common-in">${escapeHtml(when)}</span>`;
         if (g.together.length > 0) {
           html += `<span class="common-same">✓ Together: ${escapeHtml(g.together.join(', '))}</span>`;
@@ -239,7 +239,7 @@ function renderCompare() {
     const current = col.schedule.id === myClasses.activeId;
     // 点表头的名字：换到那一份课表
     html += `<th><button type="button" class="compare-name${current ? ' current' : ''}" data-schedule="${col.schedule.id}"
-      ${current ? 'aria-current="true"' : ''}>${escapeHtml(col.schedule.name)}</button></th>`;
+      ${current ? 'aria-current="true"' : ''} translate="no">${escapeHtml(col.schedule.name)}</button></th>`;
   });
   html += '</tr></thead><tbody>';
 

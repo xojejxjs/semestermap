@@ -34,6 +34,13 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// 不让浏览器翻译的内容：课名、课号、教室、楼名、地址、专有名词（Google Maps、Safari……）
+// 用户用 Chrome / Safari / Edge 的"翻译网页"时，按钮和说明会翻成他的语言，这些保持原样，
+// 才对得上自己的课表、路牌和地图 App。输入：已经转义好的 HTML
+function keepOriginal(html) {
+  return `<span translate="no">${html}</span>`;
+}
+
 // 放进 HTML 属性（比如 value="..."）时，引号也要换掉，不然课名里的 " 会把属性提前结束
 function escapeAttr(text) {
   return escapeHtml(text).replace(/"/g, '&quot;');
@@ -122,7 +129,7 @@ function resolveLocationText(text, placeIndex) {
 
 // 把地点显示成一行文字：楼名 · room 211
 function locationLabel(place, room) {
-  return escapeHtml(place.name) + (room ? ` · room ${escapeHtml(room)}` : '');
+  return keepOriginal(escapeHtml(place.name)) + (room ? ` · room ${keepOriginal(escapeHtml(room))}` : '');
 }
 
 // "我的课"统一用一种深蓝色：地图上的标签、列表卡片左边的色条都是它
@@ -342,7 +349,7 @@ async function handleAddressLookup(card) {
     card.querySelector('input[type="radio"][value="other"]').checked = true;
     updateConfirmButton(card);
   } else {
-    preview.textContent = "→ Couldn't find this address in Boston. Check the spelling, or try a building code like SCI 107.";
+    preview.innerHTML = '→ Couldn\'t find this address in <span translate="no">Boston</span>. Check the spelling, or try a building code like <span translate="no">SCI 107</span>.';
   }
 }
 
@@ -601,7 +608,7 @@ function renderMyClasses() {
 
   // 正在看示例：说清楚这是示例，以及怎么换成自己的
   if (items.some(function (c) { return c.sample; })) {
-    html += `<div class="sample-banner">👀 This is a <strong>sample schedule</strong> (real BU classes, mixed from a few students).
+    html += `<div class="sample-banner">👀 This is a <strong>sample schedule</strong> (real <span translate="no">BU</span> classes, mixed from a few students).
       Add your own schedule below and it replaces the sample.</div>`;
   }
 
@@ -625,8 +632,8 @@ function renderMyClasses() {
     skipped.forEach(function (c) {
       html += `
         <li class="class-card skipped" data-id="${c.id}">
-          <strong>${escapeHtml(c.title)}</strong>
-          <span class="rank-detail">${escapeHtml(c.course)} ${escapeHtml(c.section)}</span>
+          <strong translate="no">${escapeHtml(c.title)}</strong>
+          <span class="rank-detail" translate="no">${escapeHtml(c.course)} ${escapeHtml(c.section)}</span>
           <button type="button" class="link-button" data-action="restore">Restore</button>
         </li>`;
     });
@@ -654,7 +661,7 @@ function renderMyClasses() {
 
 // 课名下面那一行：课号、时间、日期
 function classMetaLine(c) {
-  const parts = [`${escapeHtml(c.course)} ${escapeHtml(c.section)}`];
+  const parts = [keepOriginal(`${escapeHtml(c.course)} ${escapeHtml(c.section)}`)];
   if (c.time) {
     parts.push(escapeHtml(c.time));
   }
@@ -680,12 +687,12 @@ function renderCard(c) {
   // 需要确认的：收起时只说"可能在哪"，必须点 Review 才能看到详细信息并确认
   const noRoomText = c.noRoom ? 'Your schedule says "No room assigned".' : 'No room listed.';
   const hint = c.status === 'guess'
-    ? `${noRoomText} Possible: ${c.candidates.map(function (o) { return escapeHtml(o.place.code || o.place.name); }).join(' or ')}.`
+    ? `${noRoomText} Possible: ${c.candidates.map(function (o) { return keepOriginal(escapeHtml(o.place.code || o.place.name)); }).join(' or ')}.`
     : `${noRoomText} We can't guess one (online class?).`;
   return `
     <li class="class-card review" data-id="${c.id}">
       <span class="badge badge-review">❓ Needs your check</span>
-      <strong>${escapeHtml(c.title)}</strong>
+      <strong translate="no">${escapeHtml(c.title)}</strong>
       ${classMetaLine(c)}
       <p class="card-note">${hint}</p>
       <button type="button" class="primary-button" data-action="open">Review</button>
@@ -723,8 +730,8 @@ function renderClassRow(c) {
   const head = `
     <button type="button" class="class-row-head" data-action="toggle" aria-expanded="${expanded}">
       <span class="color-dot"></span>
-      <span class="class-row-title">${escapeHtml(c.title)}</span>
-      <span class="class-row-where">${escapeHtml(c.place.code || c.place.name)}</span>
+      <span class="class-row-title" translate="no">${escapeHtml(c.title)}</span>
+      <span class="class-row-where" translate="no">${escapeHtml(c.place.code || c.place.name)}</span>
       <span class="class-row-when">${escapeHtml(shortWhen(c))}</span>
     </button>`;
   if (!expanded) {
@@ -768,7 +775,7 @@ function renderMoveRow(none) {
   let options = '';
   myClasses.schedules.forEach(function (schedule) {
     if (schedule.id !== myClasses.activeId) {
-      options += `<option value="${schedule.id}">${escapeHtml(schedule.name)}</option>`;
+      options += `<option value="${schedule.id}" translate="no">${escapeHtml(schedule.name)}</option>`;
     }
   });
   options += `<option value="new">A new schedule (${escapeHtml(nextScheduleName())})</option>`;
@@ -818,7 +825,7 @@ function renderSelectableCard(c) {
     <li class="class-card selectable ${checked ? 'selected' : ''}" data-id="${c.id}">
       <span class="select-circle">${checked ? '✓' : ''}</span>
       <span class="select-body">
-        <strong>${escapeHtml(c.title)}</strong>
+        <strong translate="no">${escapeHtml(c.title)}</strong>
         ${classMetaLine(c)}<br>
         <span class="rank-detail">${where}</span>
       </span>
@@ -898,7 +905,7 @@ function renderEditor(c) {
         <input type="radio" name="location-${c.id}" value="${o.value}" ${checked}>
         <span>
           <strong>${locationLabel(o.place, o.room)}</strong><br>
-          <span class="rank-detail">${escapeHtml(o.place.address || '')}</span><br>
+          <span class="rank-detail" translate="no">${escapeHtml(o.place.address || '')}</span><br>
           <span class="option-note">${escapeHtml(o.note)}</span>
         </span>
       </label>`;
@@ -921,7 +928,7 @@ function renderEditor(c) {
 
   return `
     <li class="class-card editing" data-id="${c.id}" data-mode="${isEdit ? 'edit' : 'review'}">
-      <strong>${escapeHtml(c.title)}</strong>
+      <strong translate="no">${escapeHtml(c.title)}</strong>
       ${classMetaLine(c)}
       <p class="card-note">${intro}</p>
       <div class="location-options">${optionsHtml}</div>

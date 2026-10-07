@@ -62,14 +62,14 @@ function showDormInfo(dorm) {
   // 分楼：有才显示
   let unitsHtml = '';
   if (dorm.units && dorm.units.length > 0) {
-    unitsHtml = `<p><strong>Buildings:</strong> ${dorm.units.join(', ')}</p>`;
+    unitsHtml = `<p><strong>Buildings:</strong> ${keepOriginal(dorm.units.join(', '))}</p>`;
   }
 
   // 覆盖的地址（Bay State Road 这类"一个点代表一段街"的宿舍）：只写门牌号的范围，比如 "153–214 Bay State Rd"
   // 一个一个的地址还留在 data.json 里，搜索 "188 Bay State Road" 照样能找到，只是不全部列出来
   let addressesHtml = '';
   if (dorm.addresses && dorm.addresses.length > 0) {
-    addressesHtml = `<p><strong>Addresses:</strong> ${dorm.address}</p>`;
+    addressesHtml = `<p><strong>Addresses:</strong> ${keepOriginal(dorm.address)}</p>`;
   }
 
   // 官方页面：有才显示
@@ -80,7 +80,7 @@ function showDormInfo(dorm) {
 
   // 3. 拼出一段 HTML，替换掉元素原来的内容
   infoBox.innerHTML = `
-    <h3>${dorm.name}</h3>
+    <h3 translate="no">${dorm.name}</h3>
     ${unitsHtml}
     ${imageHtml}
     ${addressesHtml}
@@ -250,7 +250,7 @@ function showRouteResult(result, fromPlace, toPlace) {
   box.innerHTML = `
     <p class="route-minutes">${result.isEstimate ? '~' : ''}${minutes} min walk</p>
     <p class="route-meta">${escapeHtml(meta)}</p>
-    <p class="route-ends">${escapeHtml(fromPlace.name)} → ${escapeHtml(toPlace.name)}</p>
+    <p class="route-ends" translate="no">${escapeHtml(fromPlace.name)} → ${escapeHtml(toPlace.name)}</p>
     ${renderOpenInMaps(fromPlace, toPlace)}
   `;
 }
@@ -275,11 +275,11 @@ function renderOpenInMaps(fromPlace, toPlace) {
   const to = placeCoords(toPlace);
   const google = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=' + to +
     (fromPlace.isMyLocation ? '' : '&origin=' + placeCoords(fromPlace));
-  let html = `<p class="route-open"><a href="${google}" target="_blank" rel="noopener" data-open-maps="google">Open in Google Maps ›</a>`;
+  let html = `<p class="route-open"><a href="${google}" target="_blank" rel="noopener" data-open-maps="google">Open in <span translate="no">Google Maps</span> ›</a>`;
   if (isApplePlatform()) {
     const apple = 'https://maps.apple.com/?dirflg=w&daddr=' + to +
       (fromPlace.isMyLocation ? '' : '&saddr=' + placeCoords(fromPlace));
-    html += `<a href="${apple}" target="_blank" rel="noopener" data-open-maps="apple">Open in Apple Maps ›</a>`;
+    html += `<a href="${apple}" target="_blank" rel="noopener" data-open-maps="apple">Open in <span translate="no">Apple Maps</span> ›</a>`;
   }
   return html + '</p>';
 }
@@ -451,7 +451,7 @@ function renderRoutePicks() {
   });
   function chips(items) {
     return items.map(function (item) {
-      return `<button type="button" class="pick-chip" data-pick="${escapeAttr(item.value)}" data-slot="${slot}" title="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
+      return `<button type="button" class="pick-chip" translate="no" data-pick="${escapeAttr(item.value)}" data-slot="${slot}" title="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
     }).join('');
   }
   let html = '';
@@ -631,7 +631,7 @@ async function updateRoute(placeIndex, allowPartial) {
   }
   if (fromPlace.id === toPlace.id) {
     // 两门课在同一栋楼（或者选了同一个地点）：不用走路，但地图上还是标出是哪栋楼
-    showRouteMessage(`Both are in the same building (${escapeHtml(fromPlace.code || fromPlace.name)}) — no walk needed.`);
+    showRouteMessage(`Both are in the same building (${keepOriginal(escapeHtml(fromPlace.code || fromPlace.name))}) — no walk needed.`);
     showRouteEnds(fromPlace, toPlace);
     focusRouteEnds();
     return;
@@ -674,7 +674,7 @@ async function updateRoute(placeIndex, allowPartial) {
 function buildBuildingOptions(buildings) {
   let html = '<option value="">-- Select a building --</option>';
   buildings.forEach(function (building) {
-    html += `<option value="${building.id}">${building.name}</option>`;
+    html += `<option value="${building.id}" translate="no">${building.name}</option>`;
   });
   return html;
 }
@@ -700,13 +700,13 @@ function rankDorms(dorms, building) {
 // 把排名显示到 #results
 // 输入：rankDorms 的结果、目标 building 对象
 function showDormRanking(ranked, building) {
-  let html = `<p><strong>Walking time to ${building.name}</strong></p><ol>`;
+  let html = `<p><strong>Walking time to ${keepOriginal(building.name)}</strong></p><ol>`;
 
   ranked.forEach(function (item) {
     // data-dorm-id：把宿舍 id 藏在元素上，点击时靠它知道点的是哪个宿舍
     html += `
       <li class="rank-item" data-dorm-id="${item.dorm.id}">
-        <strong>${item.dorm.name}</strong><br>
+        <strong translate="no">${item.dorm.name}</strong><br>
         <span class="rank-detail">${formatDistance(item.meters)}, ~${Math.ceil(item.minutes)} min walk</span><br>
         <span class="rank-detail">Room types: ${item.dorm.room_types.join(', ')}</span>
       </li>

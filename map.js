@@ -12,7 +12,7 @@ const map = L.map('map', {
 // 这里用的是 OpenStreetMap 提供的免费地图瓦片，不需要 API key
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors' // 使用免费地图要求保留这行版权说明
+  attribution: '&copy; <span translate="no">OpenStreetMap</span> contributors' // 使用免费地图要求保留这行版权说明
 }).addTo(map);
 
 // 去掉右下角的 "Leaflet" 前缀，只保留地图数据的版权说明
@@ -69,7 +69,7 @@ function addDormMarkers(dorms) {
       fillColor: DORM_COLOR, // 宿舍：橙色（红色只留给"来不及"）
       fillOpacity: 0.9
     })
-      .bindTooltip(dorm.name) // 鼠标悬停时显示名字
+      .bindTooltip(keepOriginal(escapeHtml(dorm.name))) // 鼠标悬停时显示名字
       .on('click', function () {
         // 点击这个 marker 时执行：把"当前这个宿舍"交给 showDormInfo（在 app.js 里）
         showDormInfo(dorm);
@@ -105,7 +105,7 @@ function addBuildingMarkers(buildings) {
       fillColor: fillColor,
       fillOpacity: 0.9
     })
-      .bindTooltip(building.name)
+      .bindTooltip(keepOriginal(escapeHtml(building.name)))
       .on('click', function () {
         highlightPlace(building);
       });
@@ -147,10 +147,10 @@ function drawRouteLine(fromPlace, toPlace, verdict, path) {
   // 起点：白色圆点、深蓝边；终点：深蓝实心圆点、白边（导航软件常见的样子）
   const start = L.circleMarker(points[0], {
     radius: 7, color: ROUTE_BORDER_COLOR, weight: 3, fillColor: 'white', fillOpacity: 1
-  }).bindTooltip('Start: ' + fromPlace.name);
+  }).bindTooltip('Start: ' + keepOriginal(escapeHtml(fromPlace.name)));
   const end = L.circleMarker(points[points.length - 1], {
     radius: 8, color: 'white', weight: 3, fillColor: ROUTE_BORDER_COLOR, fillOpacity: 1
-  }).bindTooltip('End: ' + toPlace.name);
+  }).bindTooltip('End: ' + keepOriginal(escapeHtml(toPlace.name)));
 
   // featureGroup：把线和两个点当成一个整体，一起添加、一起删除，还能一起算范围
   // 起点或终点是"我现在的位置"：那一头已经有蓝点了，不再画白点（不然会盖住蓝点）
@@ -207,7 +207,7 @@ function drawBreakRoute(points, paths) {
         iconAnchor: [0, 0]
       }),
       zIndexOffset: 16000
-    }).bindTooltip(escapeHtml(place.name)));
+    }).bindTooltip(keepOriginal(escapeHtml(place.name))));
   });
   routeLine = L.featureGroup(parts).addTo(map);
   showRouteEnds(points[0], points[points.length - 1]); // 两节课的楼：FROM / TO
@@ -273,7 +273,7 @@ function showRouteEnds(fromPlace, toPlace) {
         icon: L.divIcon({
           className: 'class-pin-wrapper',
           html: `<div class="class-label route-end pos-above" style="--label-bg:${ROUTE_BORDER_COLOR}">` +
-            `<span class="label-role">${end[1]}</span>${escapeHtml(name)}</div>`,
+            `<span class="label-role">${end[1]}</span>${keepOriginal(escapeHtml(name))}</div>`,
           iconSize: [0, 0],
           iconAnchor: [0, 0]
         }),
@@ -403,7 +403,7 @@ function showAddressMarker(slot, place, onMoved) {
 
   // L.marker 是 Leaflet 默认的蓝色大头针；draggable: true 让用户可以拖动
   const marker = L.marker(position, { draggable: true })
-    .bindTooltip(place.name + ' — drag to adjust')
+    .bindTooltip(keepOriginal(escapeHtml(place.name)) + ' — drag to adjust')
     .addTo(map);
 
   // 'dragend'：用户松开鼠标、拖动结束时触发
@@ -503,6 +503,8 @@ function showClassMarkers(groups) {
       shortName = group.stops.join('') + ' ' + shortName;
       label = shortName;
     }
+    // 浏览器翻译网页时：楼的代码（CAS）保持原样，后面的 "· 3 classes" 可以翻
+    const labelHtml = keepOriginal(escapeHtml(shortName)) + escapeHtml(label.slice(shortName.length));
 
     // divIcon：用一小段 HTML 当标记的图案
     // 两种写法都放进去：完整的 "CAS · 3 classes"，和挤的时候用的短的 "CAS"（style.css 决定显示哪个）
@@ -511,7 +513,7 @@ function showClassMarkers(groups) {
       // label-role：画了路线、这栋楼是起点或终点时，写上 FROM / TO（markRouteEnds）
       // --label-bg：标签的底色；小尾巴（style.css 的 ::after）也用这个颜色，看起来是一体的
       html: `<div class="class-label" style="--label-bg:${group.color}"><span class="label-role"></span>` +
-        `<span class="label-full">${escapeHtml(label)}</span><span class="label-short">${escapeHtml(shortName)}</span></div>`,
+        `<span class="label-full">${labelHtml}</span><span class="label-short" translate="no">${escapeHtml(shortName)}</span></div>`,
       iconSize: [0, 0],
       iconAnchor: [0, 0]
     });
@@ -520,7 +522,7 @@ function showClassMarkers(groups) {
     const lines = group.classes.map(function (c) {
       return escapeHtml(`${c.course} ${c.section} · ${c.time} · ${c.code} ${c.room}`);
     });
-    const tooltip = `<strong>${escapeHtml(group.place.name)}</strong><br>${lines.join('<br>')}`;
+    const tooltip = keepOriginal(`<strong>${escapeHtml(group.place.name)}</strong><br>${lines.join('<br>')}`);
 
     // 标签贴着楼的边放，不压在楼上，轮廓永远看得见；放在哪一边由 layoutClassLabels 决定
     // bounds：楼的范围，用来算上、下、右、左四个可以放的位置

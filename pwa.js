@@ -69,30 +69,30 @@ function installSteps() {
   const p = devicePlatform();
   if (p.wechat) {
     return {
-      title: 'Open WalkMyWeek in your browser first',
-      note: 'WeChat can’t add websites to your Home Screen.',
+      title: 'Open <span translate="no">WalkMyWeek</span> in your browser first',
+      note: '<span translate="no">WeChat</span> can’t add websites to your Home Screen.',
       steps: ['Tap <strong>···</strong> at the top right',
-        p.ios ? 'Choose <strong>Open in Safari</strong>' : 'Choose <strong>Open in browser</strong>',
+        p.ios ? 'Choose <strong>Open in <span translate="no">Safari</span></strong>' : 'Choose <strong>Open in browser</strong>',
         'Tap <strong>📲 Get the app</strong> again there']
     };
   }
   if (p.ios && p.iosOtherBrowser) {
     return {
-      title: 'Add WalkMyWeek to your Home Screen',
+      title: 'Add <span translate="no">WalkMyWeek</span> to your Home Screen',
       steps: [`Tap the <strong>Share</strong> button ${SHARE_ICON} in the address bar`,
         'Choose <strong>Add to Home Screen</strong>', 'Tap <strong>Add</strong>']
     };
   }
   if (p.ios) {
     return {
-      title: 'Add WalkMyWeek to your Home Screen',
-      steps: [`Tap the <strong>Share</strong> button ${SHARE_ICON} in Safari’s toolbar`,
+      title: 'Add <span translate="no">WalkMyWeek</span> to your Home Screen',
+      steps: [`Tap the <strong>Share</strong> button ${SHARE_ICON} in <span translate="no">Safari</span>’s toolbar`,
         'Scroll down and choose <strong>Add to Home Screen</strong>', 'Tap <strong>Add</strong>']
     };
   }
   if (p.android) {
     return {
-      title: 'Install WalkMyWeek',
+      title: 'Install <span translate="no">WalkMyWeek</span>',
       steps: ['Tap the <strong>⋮</strong> menu at the top right',
         'Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>']
     };

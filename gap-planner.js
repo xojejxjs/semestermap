@@ -176,7 +176,7 @@ function renderBreakHeadline(walk, stops, plan) {
       'You’ll see when to leave each one.</p>';
   }
   const last = stops.length - 1;
-  const leaveLast = `Leave ${escapeHtml(stopDisplayName(stops[last]))} by ${formatClock(plan.stops[last].leaveBy)} at the latest`;
+  const leaveLast = `Leave ${keepOriginal(escapeHtml(stopDisplayName(stops[last])))} by ${formatClock(plan.stops[last].leaveBy)} at the latest`;
   if (plan.verdict === 'red') {
     return `<p class="bp-headline bp-red">🔴 You’d be ${-plan.spare} min late to ${where}</p>` +
       `<p class="bp-sub">Remove a stop${stops.length > 1 ? ' or try a different order' : ''}.</p>`;
@@ -217,12 +217,12 @@ function breakStopRow(stop, t, k, count) {
     `<button type="button" class="bp-stop-toggle" data-bp="toggle" data-i="${k}" aria-expanded="${expanded}">` +
     `<span class="day-stop">${stopNumber(k + 1)}</span>` +
     // 名字占满一行（手机上不被截断）；停留时间放在名字下面
-    `<span class="bp-name-block"><strong class="bp-name">${escapeHtml(stopDisplayName(stop))}</strong>` +
+    `<span class="bp-name-block"><strong class="bp-name" translate="no">${escapeHtml(stopDisplayName(stop))}</strong>` +
     `<span class="bp-stay-summary">${stay} ${expanded ? '⌃' : '›'}</span></span></button>` +
     `<button type="button" class="bp-remove-x" data-bp="remove" data-i="${k}" aria-label="Remove ${escapeAttr(stopDisplayName(stop))}">✕</button>` +
     '</div>';
   if (!stop.placeId) {
-    html += `<div class="bp-address">${escapeHtml(stop.label)}</div>`;
+    html += `<div class="bp-address" translate="no">${escapeHtml(stop.label)}</div>`;
   }
   if (expanded) {
     html += `<div class="bp-edit">
@@ -262,14 +262,14 @@ function renderBreakPlanner() {
 
   // 行程单：下课 → ① → ② → 上课
   html += '<ol class="bp-steps">';
-  html += breakRow(walk.from.end, `<strong>${escapeHtml(classWhere(walk.from))}</strong> · class ends`, 'bp-class');
+  html += breakRow(walk.from.end, `<strong translate="no">${escapeHtml(classWhere(walk.from))}</strong> · class ends`, 'bp-class');
   stops.forEach(function (stop, k) {
     html += breakLegRow(plan.legs[k]);
     html += breakStopRow(stop, plan.stops[k], k, stops.length);
   });
   html += breakLegRow(plan.legs[plan.legs.length - 1]);
   const arrive = walk.from.end + plan.walking + sum(plan.stops.map(function (t) { return t.stay; }));
-  html += breakRow(arrive, `<strong>${escapeHtml(classWhere(walk.to))}</strong> · class at ${formatClock(walk.to.start)}`, 'bp-class');
+  html += breakRow(arrive, `<strong translate="no">${escapeHtml(classWhere(walk.to))}</strong> · class at ${formatClock(walk.to.start)}`, 'bp-class');
   html += '</ol>';
 
   // 加一个地方：平时只有一行 "＋ Add a stop"，点了才展开；还没有地方时直接展开
@@ -310,7 +310,7 @@ function renderBreakPicks(stops) {
     return '';
   }
   return '<div class="bp-picks">' + items.map(function (item) {
-    return `<button type="button" class="pick-chip" data-bp-pick="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
+    return `<button type="button" class="pick-chip" translate="no" data-bp-pick="${escapeAttr(item.value)}">${escapeHtml(item.label)}</button>`;
   }).join('') + '</div>';
 }
 
@@ -322,7 +322,7 @@ function renderBreakMapsLink(points) {
   const waypoints = points.slice(1, -1).map(placeCoords).join('|');
   const url = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=' + origin +
     '&destination=' + destination + '&waypoints=' + encodeURIComponent(waypoints);
-  return `<p class="route-open"><a href="${url}" target="_blank" rel="noopener" data-open-maps="google">Open the whole plan in Google Maps ›</a></p>`;
+  return `<p class="route-open"><a href="${url}" target="_blank" rel="noopener" data-open-maps="google">Open the whole plan in <span translate="no">Google Maps</span> ›</a></p>`;
 }
 
 // 地图：画出整条路线；没有真实路线的段先画直线，拿到以后再换成沿街道的
